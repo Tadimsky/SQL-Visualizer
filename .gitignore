@@ -2,9 +2,15 @@
 .nodemonignore
 .sass-cache/
 npm-debug.log
-node_modules/
-public/lib
 app/tests/coverage/
 .bower-*/
 .idea/
 dist
+node_modules
+public
+.tmp
+.sass-cache
+.idea
+client/bower_components
+dist
+/server/config/local.env.js
