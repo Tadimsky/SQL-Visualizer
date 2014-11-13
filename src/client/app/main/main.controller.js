@@ -8,4 +8,17 @@ angular.module('sqlvizApp')
       $scope.awesomeThings = awesomeThings;
     });
 
+
+    $scope.editorOptions = {
+      lineWrapping : true,
+      lineNumbers: true,
+      indentWithTabs: true,
+      smartIndent: true,
+      autofocus: true,
+      extraKeys: {"Ctrl-Space": "autocomplete"},
+      mode: 'text/x-mysql',
+      theme: 'monokai'
+    };
+
+
   });
