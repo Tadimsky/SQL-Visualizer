@@ -2,10 +2,16 @@
 
 angular.module('sqlvizApp')
   .controller('NavbarCtrl', function ($scope, $location) {
-    $scope.menu = [{
-      'title': 'Home',
-      'link': '/'
-    }];
+    $scope.menu = [
+      {
+        'title': 'Home',
+        'link': '/'
+      },
+      {
+        'title': 'About',
+        'link': '/about'
+      }
+    ];
 
     $scope.isCollapsed = true;
 
