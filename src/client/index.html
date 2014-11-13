@@ -13,10 +13,7 @@
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(client) app/vendor.css -->
       <!-- bower:css -->
-      <link rel="stylesheet" href="bower_components/highlightjs/styles/default.css" />
-      <link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
-      <link rel="stylesheet" type="text/css" href="bower_components/codemirror/addon/hint/show-hint.css">
-    <link rel="stylesheet" type="text/css" href="bower_components/codemirror/theme/monokai.css">
+      <link rel="stylesheet" href="bower_components/codemirror/lib/codemirror.css" />
       <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,client}) app/app.css -->
@@ -24,6 +21,10 @@
       <!-- injector:css -->
       <!-- endinjector -->
     <!-- endbuild -->
+
+    <link rel="stylesheet" type="text/css" href="bower_components/codemirror/addon/hint/show-hint.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/codemirror/theme/monokai.css">
+
 
   </head>
   <body ng-app="sqlvizApp">
@@ -64,17 +65,14 @@
       <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
       <script src="bower_components/lodash/dist/lodash.compat.js"></script>
       <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
-      <script src="bower_components/highlightjs/highlight.pack.js"></script>
-      <script src="bower_components/angular-highlightjs/angular-highlightjs.js"></script>
+      <script src="bower_components/codemirror/lib/codemirror.js"></script>
+      <script src="bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
+      <!-- endbower -->
 
-      <script type="text/javascript" src="bower_components/codemirror/lib/codemirror.js"></script>
-      <script type="text/javascript" src="bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
+    <script src="bower_components/codemirror/mode/sql/sql.js"></script>
+    <script src="bower_components/codemirror/addon/hint/show-hint.js"></script>
+    <script src="bower_components/codemirror/addon/hint/sql-hint.js"></script>
 
-      <script src="bower_components/codemirror/mode/sql/sql.js"></script>
-      <script src="bower_components/codemirror/addon/hint/show-hint.js"></script>
-      <script src="bower_components/codemirror/addon/hint/sql-hint.js"></script>
-
-    <!-- endbower -->
 
 
     <!-- endbuild -->

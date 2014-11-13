@@ -5,7 +5,7 @@ angular.module('sqlvizApp', [
   'ngResource',
   'ngSanitize',
   'ui.router',
-  'ui.bootstrap',
+  'ui.bootstrap',grunt buildcontrol:heroku
   'ui.codemirror'
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider) {
