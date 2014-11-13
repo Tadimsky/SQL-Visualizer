@@ -15,10 +15,8 @@ angular.module('sqlvizApp')
       indentWithTabs: true,
       smartIndent: true,
       autofocus: true,
-      extraKeys: {"Ctrl-Space": "autocomplete"},
+      extraKeys: {'Ctrl-Space': 'autocomplete'},
       mode: 'text/x-mysql',
       theme: 'monokai'
     };
-
-
   });
