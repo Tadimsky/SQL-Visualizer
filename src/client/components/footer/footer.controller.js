@@ -8,22 +8,22 @@ angular.module('sqlvizApp')
 
     $scope.authors = [
       {
-        name: 'Tadimsky',
+        name: 'Jonno',
         netid: 'jas138',
         github: 'Tadimsky'
       },
       {
-        name: 'Czarlos',
+        name: 'Carlos',
         netid: 'cer26',
         github: 'Czarlos'
       },
       {
-        name: 'Fish',
+        name: 'Ryan F',
         netid: 'ref13',
-        github: 'Fish6'
+        github: 'RFish6'
       },
       {
-        name: 'Toto',
+        name: 'Ryan T',
         netid: 'rt181',
         github: 'rtoussaint'
       }
