@@ -1,6 +1,7 @@
 'use strict';
 
-angular.module('sqlvizApp', ['d3'])
+
+angular.module('sqlvizApp')
   .directive('treeGraph', ['d3Service', function (d3Service) {
     return {
       restrict: 'EA',
