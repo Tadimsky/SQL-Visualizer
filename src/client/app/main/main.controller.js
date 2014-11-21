@@ -8,6 +8,27 @@ angular.module('sqlvizApp')
       $scope.awesomeThings = awesomeThings;
     });
 
+    $scope.sqlCommand = '';
+    $scope.parsedTree = '';
+
+    $scope.$watch('sqlCommand',
+      function(newValue, oldValue) {
+        console.log(newValue + " - " + oldValue);
+        if ( newValue !== oldValue ) {
+          if (newValue.indexOf(';') != newValue.length - 1) {
+            newValue = newValue + ';';
+          }
+          $http.post('/api/sql', {sql: newValue})
+            .success(function(data, status, headers) {
+              $scope.parsedTree = JSON.stringify(data, undefined, 4);
+            })
+            .error(function(data, status) {
+              alert(status);
+            });
+        }
+      }
+    );
+
 
     $scope.editorOptions = {
       lineWrapping : true,
@@ -19,4 +40,5 @@ angular.module('sqlvizApp')
       mode: 'text/x-mysql',
       theme: 'monokai'
     };
+
   });
