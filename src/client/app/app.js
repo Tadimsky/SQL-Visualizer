@@ -7,7 +7,8 @@ angular.module('sqlvizApp', [
   'ui.router',
   'ui.bootstrap',
   'ui.codemirror',
-  'ngSanitize'
+  'ngSanitize',
+  'd3'
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider) {
     $urlRouterProvider

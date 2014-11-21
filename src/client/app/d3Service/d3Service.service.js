@@ -20,9 +20,9 @@ angular.module('d3', [])
                 onScriptLoad();
             }
         };
-        scriptTag.onload = onScriptLoad();
+        scriptTag.onload = onScriptLoad;
 
-        var s = $document[0].getElementByTagName('body')[0];
+        var s = $document[0].getElementsByTagName('body')[0];
         s.appendChild(scriptTag);
 
         return {
