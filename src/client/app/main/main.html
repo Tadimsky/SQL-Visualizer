@@ -4,6 +4,7 @@
     <p class="lead">Making sense of your SQL Queries.</p>
   </div>
 </header>
+<tree-graph class=""></tree-graph>
 <div class="container">
   <div class="row">
     <div class="col-lg-12">
@@ -12,7 +13,6 @@
         <div class="row">
           <pre ng-show="parsedTree" ng-bind-html="parsedTree | prettify"></pre>
           <h2>Visualization</h2>
-          <!--<tree-graph class=""></tree-graph>-->
           <div class="well">
             <ui-codemirror ui-codemirror-opts="editorOptions" ng-model="sqlCommand"></ui-codemirror>
             <p class="text-right"><small>Tip: Use CTRL + SPACE to bring up Auto-Complete</small></p>
