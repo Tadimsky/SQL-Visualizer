@@ -5,6 +5,9 @@ angular.module('sqlvizApp')
   .directive('treeGraph', ['d3Service', function (d3Service) {
     return {
       restrict: 'EA',
+      scope: {
+        data: '='
+      },
       link: function (scope, element, attrs) {
         d3Service.d3().then(function(d3) {
 
@@ -20,17 +23,15 @@ angular.module('sqlvizApp')
             scope.$apply();
           };
 
-          scope.data = [
-            {name: 'Jonno', score: 100},
-            {name: 'Megan', score: 90},
-            {name: 'Carlos', score: 50}
-          ];
-
           scope.$watch(function() {
             return angular.element(window)[0].innerWidth;
           }, function() {
             scope.render(scope.data);
           });
+
+          scope.$watch('data', function(newVal, oldVal) {
+            return scope.render(newVal);
+          }, true);
 
           scope.render = function(data) {
             svg.selectAll('*').remove();

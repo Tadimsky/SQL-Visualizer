@@ -11,6 +11,13 @@ angular.module('sqlvizApp')
     $scope.sqlCommand = '';
     $scope.parsedTree = '';
 
+
+    $scope.data = [
+      {name: 'Jonno', score: 100},
+      {name: 'Megan', score: 90},
+      {name: 'Carlos', score: 50}
+    ];
+
     $scope.$watch('sqlCommand',
       function(newValue, oldValue) {
         console.log(newValue + " - " + oldValue);
