@@ -3,6 +3,7 @@
 
 angular.module('sqlvizApp')
   .directive('treeGraph', ['d3Service', function (d3Service) {
+
     return {
       restrict: 'EA',
       scope: {
@@ -10,14 +11,16 @@ angular.module('sqlvizApp')
       },
       link: function (scope, element, attrs) {
         d3Service.d3().then(function(d3) {
-
-          var margin = parseInt(attrs.margin) || 20,
-            barHeight = parseInt(attrs.barHeight) || 20,
-            barPadding = parseInt(attrs.barPadding) || 5;
+          var margin = {top: 0, right: 120, bottom: 20, left: 0},
+            width = 1400 - margin.right - margin.left,
+            height = 1000 - margin.top - margin.bottom;
 
           var svg = d3.select(element[0])
-            .append('svg')
-            .style('width', '100%');
+            .append('svg:svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .attr("transform", "translate(" + margin.left +  "," + margin.top + ")");
 
           window.onresize = function() {
             scope.$apply();
@@ -33,40 +36,65 @@ angular.module('sqlvizApp')
             return scope.render(newVal);
           }, true);
 
-          scope.render = function(data) {
+          scope.render = function(jsonData) {
+
+            var data = jsonData;
+
             svg.selectAll('*').remove();
+
             if (!data) {
               return;
             }
 
-            var width = d3.select(element[0]).node().offsetWidth - margin,
-              height = scope.data.length * (barHeight + barPadding),
-              color = d3.scale.category20(),
-              xScale = d3.scale.linear()
-                .domain([0, d3.max(data, function(d) {
-                  return d.score;
-                })])
-                .range([0, width]);
-
-            svg.attr('height', height);
-
-            svg.selectAll('rect')
-              .data(data).enter()
-              .append('rect')
-              .attr('height', barHeight)
-              .attr('width', 140)
-              .attr('x', Math.round(margin /2 ))
-              .attr('y', function(d, i) {
-                return i * (barHeight + barPadding);
-              })
-              .attr('fill', function(d) {
-                return color(d.score);
-              })
-              .transition()
-              .duration(1000)
-              .attr('width', function(d) {
-                return xScale(d.score);
+            // Create a tree "canvas"
+            var tree = d3.layout.tree()
+              .size([width,height])
+              .children(function(d) {
+                return (!d.children || d.children.length === 0) ? null: d.children;
               });
+
+            var diagonal = d3.svg.diagonal()
+              .projection(function(d) { return [d.x, d.y]; });
+
+            // Preparing the data for the tree layout, convert data into an array of nodes
+            var nodes = tree.nodes(data);
+
+
+
+            // Create an array with all the links
+            var links = tree.links(nodes);
+
+            var link = svg.selectAll("path.link")
+              .data(links)
+              .enter().append("svg:path")
+              .attr("class", "link")
+              .attr("d", diagonal);
+
+            var node = svg.selectAll("g.node")
+              .data(nodes)
+              .enter().append("svg:g")
+              .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+            // Add the dot at every node
+            node.append("svg:circle")
+              .attr("r", 3.5);
+
+            // place the name atribute left or right depending if children
+            node.append("svg:text")
+              .attr("dx", 0)
+              .attr("dy", function(d) { return d.children? -8 : 20 } )
+              .attr("text-anchor", 'middle')
+              .text(function(d) { return d.name; });
+
+            // place the name atribute left or right depending if children
+
+
+              node.append("svg:text")
+                .attr("dx", 0)
+                .attr("dy", function(d) { return d.children? 15 : 40 } )
+                .attr("text-anchor", 'middle')
+                .text(function(d) {return d.statement == d.name || d.depth < 4 ? '' : d.statement; });
+
           }
         });
       }
