@@ -2,21 +2,42 @@
 
 angular.module('sqlvizApp')
   .controller('MainCtrl', function ($scope, $http) {
-    $scope.awesomeThings = [];
-
-    $http.get('/api/things').success(function(awesomeThings) {
-      $scope.awesomeThings = awesomeThings;
-    });
 
     $scope.sqlCommand = '';
-    $scope.parsedTree = '';
+    $scope.parsedTreeText = '';
+    $scope.parsedTree;
 
+    var cleanupTree = function(data) {
+      var root = data;
+      var queue = [];
+      queue.push(root);
 
-    $scope.data = [
-      {name: 'Jonno', score: 100},
-      {name: 'Megan', score: 90},
-      {name: 'Carlos', score: 50}
-    ];
+      while (queue.length > 0) {
+        var c = queue.pop();
+
+        if (c.source && c.range) {
+          c.statement = c.source.substr(c.range.location, c.range.length);
+        }
+
+        if (c.children) {
+          c.children.forEach(function(child, index) {
+            if (!child.name) {
+              c.children.splice(index, 1);
+            }
+            else {
+              if (child.name.indexOf('whitespace') > -1) {
+                c.children.splice(index, 1);
+              }
+              else {
+                queue.push(child);
+              }
+            }
+          });
+        }
+      }
+
+      return data;
+    };
 
     $scope.$watch('sqlCommand',
       function(newValue, oldValue) {
@@ -27,7 +48,8 @@ angular.module('sqlvizApp')
           }
           $http.post('/api/sql', {sql: newValue})
             .success(function(data, status, headers) {
-              $scope.parsedTree = JSON.stringify(data, undefined, 4);
+              $scope.parsedTree = data; //cleanupTree(data);
+              $scope.parsedTreeText = JSON.stringify(data, undefined, 4);
             })
             .error(function(data, status) {
               alert(status);
