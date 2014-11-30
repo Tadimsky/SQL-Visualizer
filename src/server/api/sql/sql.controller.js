@@ -26,12 +26,16 @@ var prune = function(data) {
       // never has children
     }
     else {
-      if ((data.name.indexOf('start') > -1) || (data.name.indexOf('source') > -1)){
+      if ((data.name.indexOf('start') > -1) || (data.name.indexOf('source') == 0)){
         data = data.children[0];
       }
 
       if (data.range) {
-        data.statement = data.source.substr(data.range.location, data.range.length);
+        var stmt = data.source.substr(data.range.location, data.range.length);
+        stmt = stmt.trim();
+        if (stmt !== data.name) {
+          data.statement = stmt;
+        }
       }
 
       if (data.children) {
@@ -85,7 +89,7 @@ exports.parseSQL = function(req, res) {
   var command = req.body.sql;
   if (command) {
     var tree = sql.parse(command);
-    //tree = prune(tree);
+    tree = prune(tree);
 
     //interpretSQL(tree);
 
