@@ -86,11 +86,11 @@ var interpretSQL = function(data) {
 
 
 exports.parseSQL = function(req, res) {
-  var command = req.body.sql;
+  var command = (req.body.sql).toUpperCase();
   if (command) {
     var tree = sql.parse(command);
     tree = prune(tree);
-
+    console.log(command);
     //interpretSQL(tree);
 
     return res.json(tree);
