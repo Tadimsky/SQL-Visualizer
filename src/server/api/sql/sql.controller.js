@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var sql = require('./sqlparser.js');
+var crypto = require('crypto');
 
 // Get list of sqls
 exports.index = function(req, res) {
@@ -84,6 +85,38 @@ var interpretSQL = function(data) {
   console.log(tables);
 };
 
+/**
+ * Bredth first search to find table names
+ *
+ */
+var findTables = function (json) {
+    var returnArray = [];
+    var visited = {};
+    var firstNode = json.children[0];
+    var stack = new Array();
+    stack.push(firstNode);
+
+    while (stack.length > 0) {
+        var topNode = stack[0];
+        stack.pop();
+        var prehash = JSON.stringify(topNode);
+        var hashed = crypto.createHash('md5').update(prehash).digest('base64');
+        if (!visited.hasOwnProperty(hashed)) {
+            if (topNode.name === "table_name") {
+                returnArray.push(topNode.children.statement);
+            }
+            visited[hashed] = "true";
+            stack.concat(topNode.children);
+            console.log(stack);
+        }
+    }
+    console.log(returnArray);
+    return returnArray;
+};
+
+var validate = function (string) {
+
+}
 
 exports.parseSQL = function(req, res) {
   var command = (req.body.sql).toUpperCase();
@@ -99,3 +132,14 @@ exports.parseSQL = function(req, res) {
     return res.json({});
   }
 };
+
+exports.getTables = function (req, res) {
+    var json = {"good":"match"};
+    var command = "SELECT * FROM money;";
+    var tree = sql.parse(command);
+    tree = prune(tree);
+    findTables(tree);
+    return res.json(tree);
+};
+
+
