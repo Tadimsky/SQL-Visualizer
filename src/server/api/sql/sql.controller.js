@@ -93,24 +93,27 @@ var findTables = function (json) {
     var returnArray = [];
     var visited = {};
     var firstNode = json.children[0];
-    var stack = new Array();
+    var stack = [];
     stack.push(firstNode);
 
     while (stack.length > 0) {
-        var topNode = stack[0];
-        stack.pop();
+        var topNode = stack.pop();
         var prehash = JSON.stringify(topNode);
         var hashed = crypto.createHash('md5').update(prehash).digest('base64');
         if (!visited.hasOwnProperty(hashed)) {
             if (topNode.name === "table_name") {
-                returnArray.push(topNode.children.statement);
+                returnArray.push((topNode.children)[0].statement);
             }
             visited[hashed] = "true";
-            stack.concat(topNode.children);
-            console.log(stack);
+            stack = stack.concat(topNode.children);
         }
     }
-    console.log(returnArray);
+
+    for (var i=0; i<returnArray.length; i++) {
+        console.log(returnArray[i]);
+    }
+
+
     return returnArray;
 };
 
@@ -135,7 +138,7 @@ exports.parseSQL = function(req, res) {
 
 exports.getTables = function (req, res) {
     var json = {"good":"match"};
-    var command = "SELECT * FROM money;";
+    var command = "SELECT * FROM money, cash;";
     var tree = sql.parse(command);
     tree = prune(tree);
     findTables(tree);
