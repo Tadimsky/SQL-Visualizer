@@ -109,11 +109,6 @@ var findTables = function (json) {
         }
     }
 
-    for (var i=0; i<returnArray.length; i++) {
-        console.log(returnArray[i]);
-    }
-
-
     return returnArray;
 };
 
@@ -137,12 +132,17 @@ exports.parseSQL = function(req, res) {
 };
 
 exports.getTables = function (req, res) {
-    var json = {"good":"match"};
-    var command = "SELECT * FROM money, cash;";
-    var tree = sql.parse(command);
-    tree = prune(tree);
-    findTables(tree);
-    return res.json(tree);
+    var command = req.body.sql;
+    if (command) {
+        var tree = sql.parse(command);
+        tree = prune(tree);
+        var tables = findTables(tree);
+        console.log(tables);
+        return res.json({"tables":tables});
+    }
+    else {
+        return res.json({});
+    }
 };
 
 
