@@ -86,8 +86,8 @@ var interpretSQL = function(data) {
 };
 
 /**
- * Bredth first search to find table names
- *
+ * Breadth first search to find table names
+ * @param json
  */
 var findTables = function (json) {
     var returnArray = [];
@@ -112,9 +112,54 @@ var findTables = function (json) {
     return returnArray;
 };
 
-var validate = function (string) {
+/**
+ * Breadth first search to find column names and associated tables
+ * Will return empty array if *
+ * @param json
+ */
+var findColumns = function (json) {
+    var returnArray = [];
+    var visited = {};
+    var firstNode = json.children[0];
+    var stack = [];
+    stack.push(firstNode);
 
-}
+    while (stack.length > 0) {
+        var topNode = stack.pop();
+        var prehash = JSON.stringify(topNode);
+        var hashed = crypto.createHash('md5').update(prehash).digest('base64');
+        if (!visited.hasOwnProperty(hashed)) {
+            if (topNode.name === "value") {
+                returnArray.push(topNode.children);
+            }
+            visited[hashed] = "true";
+            stack = stack.concat(topNode.children);
+        }
+    }
+
+    var columnTuples = [];
+
+    for (var i=0; i<returnArray.length; i++) {
+        var table = "";
+        var column = "";
+        var tuple = {}
+        for (var x=0; x<(returnArray[i]).length; x++) {
+            var item = (returnArray[i][x]);
+            if (item.name === "table_name") {
+                table = item.statement;
+            }
+            else if (item.name === "column_name") {
+                column = item.statement;
+            }
+        }
+        tuple[table] = column;
+        columnTuples.push(tuple);
+    }
+
+
+    return columnTuples;
+};
+
 
 exports.parseSQL = function(req, res) {
   var command = (req.body.sql).toUpperCase();
@@ -132,7 +177,7 @@ exports.parseSQL = function(req, res) {
 };
 
 exports.getTables = function (req, res) {
-    var command = req.body.sql;
+    var command = (req.body.sql).toUpperCase();
     if (command) {
         var tree = sql.parse(command);
         tree = prune(tree);
@@ -145,4 +190,17 @@ exports.getTables = function (req, res) {
     }
 };
 
+exports.getColumns = function (req, res) {
+    var command = (req.body.sql).toUpperCase();
+    if (command) {
+        var tree = sql.parse(command);
+        tree = prune(tree);
+        var columns = findColumns(tree);
+        console.log(columns);
+        return res.json({"columns":columns});
+    }
+    else {
+        return res.json({});
+    }
+}
 
