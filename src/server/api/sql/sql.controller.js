@@ -131,6 +131,7 @@ var interpretSQL = function(data) {
  */
 var findTables = function (json) {
     var returnArray = [];
+    var uniqueTables = {};
     var visited = {};
     var firstNode = json.children[0];
     var stack = [];
@@ -143,14 +144,85 @@ var findTables = function (json) {
         if (!visited.hasOwnProperty(hashed)) {
             if (topNode.name === "table_name") {
                 returnArray.push((topNode.children)[0].statement);
+                uniqueTables[(topNode.children)[0].statement] = [];
             }
             visited[hashed] = "true";
             stack = stack.concat(topNode.children);
         }
     }
-
+    //var columnTuples = findColumns(json); //list of tables:columns
+    var tables = addColumns(uniqueTables, json);
     return returnArray;
+    //return uniqueTables;
 };
+
+
+/**
+ * Add column objects to the corresponding table
+ * @param tables - Map of tables
+ */
+var addColumns = function (tables, json) {
+    var selectColumns = findColumnObject(tables, json, "SELECT");
+    var findJoined = findColumnObject(tables, json, "join_source");
+    var findWhere = findColumnObject(tables, json, "WHERE");
+    var array = selectColumns.concat(findJoined, findWhere);
+    for(var i=0; i<array.length;i++) {
+        var item = array[i];
+        if (tables.hasOwnProperty(item["table"])) {
+            var obj = {};
+            obj[item.column] = item.operator;
+            tables[item["table"]].push(obj); //Add column item to list of columns
+        }
+    }
+    console.log(tables);
+    return tables;
+};
+
+/**
+ * Finds the {table:column{section:something}} object
+ * of SELECT/FROM/WHERE
+ * @param
+ */
+var findColumnObject = function (tables, json, operator) {
+    //1. Find specific operator tree
+    var subTrees = [];
+    var visited = {};
+    var firstNode = json.children[0];
+    var stack = [];
+    stack.push(firstNode);
+
+    while (stack.length > 0) {
+        var topNode = stack.pop();
+        var prehash = JSON.stringify(topNode);
+        var hashed = crypto.createHash('md5').update(prehash).digest('base64');
+        if (!visited.hasOwnProperty(hashed)) {
+            if (topNode.name === operator) {
+                subTrees.push(topNode.children);
+            }
+            visited[hashed] = "true";
+            stack = stack.concat(topNode.children);
+        }
+    }
+    var array = [];
+    //2. Look in that tree for column object
+    for(var i=0; i<subTrees.length; i++) {
+        var tuples = findColumns(subTrees[0][i]);
+        //array.push(tuples);
+        if (tuples.length > 0) {
+            for(var x=0; x<tuples.length;x++){
+            var obj = tuples[x];
+            obj["operator"] = operator;
+            array.push(obj);
+        }
+        }
+        else {
+            array.push({});
+        }
+    }
+    return array;
+    //return tables;
+};
+
 
 /**
  * Breadth first search to find column names and associated tables
@@ -160,7 +232,7 @@ var findTables = function (json) {
 var findColumns = function (json) {
     var returnArray = [];
     var visited = {};
-    var firstNode = json.children[0];
+    var firstNode = json;
     var stack = [];
     stack.push(firstNode);
 
@@ -176,7 +248,6 @@ var findColumns = function (json) {
             stack = stack.concat(topNode.children);
         }
     }
-
     var columnTuples = [];
 
     for (var i=0; i<returnArray.length; i++) {
@@ -192,11 +263,10 @@ var findColumns = function (json) {
                 column = item.statement;
             }
         }
-        tuple[table] = column;
+        tuple["table"] = table;
+        tuple["column"] = column;
         columnTuples.push(tuple);
     }
-
-
     return columnTuples;
 };
 
@@ -222,9 +292,10 @@ exports.getTables = function (req, res) {
     if (command) {
         var tree = sql.parse(command);
         tree = prune(tree);
+        tree = reformat(tree);
         var tables = findTables(tree);
-        console.log(tables);
-        return res.json({"tables":tables});
+        //console.log(tables);
+        return res.json([{"tables":tables}, {"tree":tree}]);
     }
     else {
         return res.json({});
