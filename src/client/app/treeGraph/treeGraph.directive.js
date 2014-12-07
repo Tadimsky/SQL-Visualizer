@@ -79,7 +79,8 @@ angular.module('sqlvizApp')
               .size([width,height])
               .children(function(d) {
                 return (!d.children || d.children.length === 0) ? null: d.children;
-              })
+              });
+            /*
               .separation(function(a, b) {
                 if (a.parent == b.parent) {
                   if (isTable(a) || isTable(b)) {
@@ -88,6 +89,7 @@ angular.module('sqlvizApp')
                 }
                 return 10;
               });
+              */
 
             var diagonal = d3.svg.diagonal()
               .projection(function(d) { return [d.x, d.y]; });
