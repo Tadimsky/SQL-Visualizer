@@ -3,7 +3,6 @@
 var _ = require('lodash');
 var sql = require('./sqlparser.js');
 var crypto = require('crypto');
-
 var TreeModel = require('tree-model');
 
 // Get list of sqls
@@ -12,7 +11,6 @@ exports.index = function(req, res) {
 };
 
 var generateResultTable = function(root) {
-
   var output = [];
 
   var select_results =  root.all(function(node) {
@@ -284,6 +282,34 @@ var findColumns = function (json) {
     return columnTuples;
 };
 
+exports.getTables = function (req, res) {
+    var command = (req.body.sql).toUpperCase();
+    if (command) {
+        var tree = sql.parse(command);
+        tree = prune(tree);
+        tree = reformat(tree);
+        var tables = findTables(tree);
+        //console.log(tables);
+        return res.json([{"tables":tables}, {"tree":tree}]);
+    }
+    else {
+        return res.json({});
+    }
+};
+
+exports.getColumns = function (req, res) {
+    var command = (req.body.sql).toUpperCase();
+    if (command) {
+        var tree = sql.parse(command);
+        tree = prune(tree);
+        var columns = findColumns(tree);
+        console.log(columns);
+        return res.json({"columns":columns});
+    }
+    else {
+        return res.json({});
+    }
+};
 
 exports.parseSQL = function(req, res) {
   var command = req.body.sql;
@@ -312,33 +338,4 @@ exports.parseSQL = function(req, res) {
     return res.json({});
   }
 };
-
-exports.getTables = function (req, res) {
-    var command = (req.body.sql).toUpperCase();
-    if (command) {
-        var tree = sql.parse(command);
-        tree = prune(tree);
-        tree = reformat(tree);
-        var tables = findTables(tree);
-        //console.log(tables);
-        return res.json([{"tables":tables}, {"tree":tree}]);
-    }
-    else {
-        return res.json({});
-    }
-};
-
-exports.getColumns = function (req, res) {
-    var command = (req.body.sql).toUpperCase();
-    if (command) {
-        var tree = sql.parse(command);
-        tree = prune(tree);
-        var columns = findColumns(tree);
-        console.log(columns);
-        return res.json({"columns":columns});
-    }
-    else {
-        return res.json({});
-    }
-}
 
