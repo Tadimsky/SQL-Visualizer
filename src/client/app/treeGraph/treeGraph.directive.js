@@ -5,7 +5,7 @@ angular.module('sqlvizApp')
   .directive('treeGraph', ['d3Service', function (d3Service) {
 
     /**
-     *  Determines whether the node is a table referece
+     *  Determines whether the node is a table reference
      */
     var isTable = function(node) {
       if (node.name == 'value') {
