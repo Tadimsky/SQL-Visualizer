@@ -3,6 +3,8 @@
 var _ = require('lodash');
 var sql = require('./sqlparser.js');
 
+var TreeModel = require('tree-model');
+
 // Get list of sqls
 exports.index = function(req, res) {
   res.json([]);
@@ -130,6 +132,18 @@ exports.parseSQL = function(req, res) {
   if (command) {
     var tree = sql.parse(command);
     tree = prune(tree);
+
+    /*
+    var t = new TreeModel();
+    var root = t.parse(tree);
+
+    var val = JSON.stringify(root.model, function( key, value) {
+      if( key == 'parent') { return value.id;}
+      else {return value;}
+    });
+
+    return res.send(val);
+    */
 
     tree = reformat(tree);
 
