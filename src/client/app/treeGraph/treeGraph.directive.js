@@ -71,7 +71,7 @@ angular.module('sqlvizApp')
 
           scope.render = function(jsonData) {
 
-            var data = jsonData;
+            var data = jsonData.tree;
 
             svg.selectAll('*').remove();
 
