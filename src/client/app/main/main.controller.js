@@ -15,7 +15,7 @@ angular.module('sqlvizApp')
           }
           $http.post('/api/sql', {sql: newValue})
             .success(function(data, status, headers) {
-              $scope.parsedTree = data; //cleanupTree(data);
+              $scope.parsedTree = data.tree; //cleanupTree(data);
               $scope.parsedTreeText = JSON.stringify(data, undefined, 4);
             })
             .error(function(data, status) {
