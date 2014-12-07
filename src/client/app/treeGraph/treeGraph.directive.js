@@ -76,7 +76,7 @@ angular.module('sqlvizApp')
 
             // Create a tree "canvas"
             var tree = d3.layout.tree()
-              .size([width,height])
+              .size([height,width])
               .children(function(d) {
                 return (!d.children || d.children.length === 0) ? null: d.children;
               });
@@ -92,7 +92,7 @@ angular.module('sqlvizApp')
               */
 
             var diagonal = d3.svg.diagonal()
-              .projection(function(d) { return [d.x, d.y]; });
+              .projection(function(d) { return [d.y, d.x]; });
 
             // Preparing the data for the tree layout, convert data into an array of nodes
             var nodes = tree.nodes(data);
@@ -111,7 +111,7 @@ angular.module('sqlvizApp')
             var node = svg.selectAll("g.node")
               .data(nodes)
               .enter().append("svg:g")
-              .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+              .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
             // Add the dot at every node
             node.append("svg:circle")

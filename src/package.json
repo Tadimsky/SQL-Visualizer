@@ -15,7 +15,8 @@
     "lodash": "~2.4.1",
     "method-override": "~1.0.0",
     "morgan": "~1.0.0",
-    "serve-favicon": "~2.0.1"
+    "serve-favicon": "~2.0.1",
+    "tree-model": "^0.4.3"
   },
   "devDependencies": {
     "grunt": "~0.4.4",

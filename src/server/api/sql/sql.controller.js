@@ -4,6 +4,8 @@ var _ = require('lodash');
 var sql = require('./sqlparser.js');
 var crypto = require('crypto');
 
+var TreeModel = require('tree-model');
+
 // Get list of sqls
 exports.index = function(req, res) {
   res.json([]);
@@ -67,7 +69,7 @@ var prune = function(data) {
       // never has children
     }
     else {
-      if ((data.name.indexOf('start') > -1) || (data.name.indexOf('source') == 0)){
+      if ((data.name.indexOf('start') == 0 ) || (data.name.indexOf('source') == 0)){
         data = data.children[0];
       }
 
@@ -76,6 +78,7 @@ var prune = function(data) {
         stmt = stmt.trim();
         if (stmt !== data.name) {
           data.statement = stmt;
+          delete data.range;
         }
       }
 
@@ -274,6 +277,19 @@ exports.parseSQL = function(req, res) {
   if (command) {
     var tree = sql.parse(command);
     tree = prune(tree);
+
+    /*
+    var t = new TreeModel();
+    var root = t.parse(tree);
+
+    var val = JSON.stringify(root.model, function( key, value) {
+      if( key == 'parent') { return value.id;}
+      else {return value;}
+    });
+
+    return res.send(val);
+    */
+
     tree = reformat(tree);
 
     //interpretSQL(tree);
