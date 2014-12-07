@@ -150,10 +150,8 @@ var findTables = function (json) {
             stack = stack.concat(topNode.children);
         }
     }
-    //var columnTuples = findColumns(json); //list of tables:columns
     var tables = addColumns(uniqueTables, json);
-    return returnArray;
-    //return uniqueTables;
+    return tables;
 };
 
 
@@ -279,6 +277,8 @@ exports.parseSQL = function(req, res) {
     tree = reformat(tree);
 
     //interpretSQL(tree);
+    var tables = findTables(tree);
+    return res.json({tables: tables, tree: tree});
 
     return res.json(tree);
   }
