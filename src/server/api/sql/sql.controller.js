@@ -10,6 +10,40 @@ exports.index = function(req, res) {
   res.json([]);
 };
 
+var generateResultTable = function(root) {
+
+  var output = [];
+
+  var select_results =  root.all(function(node) {
+    node = node.model;
+    return node.name == 'select_result'
+  });
+
+  select_results.forEach(function(node) {
+
+    var value = node.first(function(n) {
+      n = n.model;
+      return n.name == 'value';
+    });
+
+    var table_name = value.first(function(table) {
+      table = table.model;
+      return table.name == 'table_name';
+    });
+    var column_name = value.first(function(column) {
+      column = column.model;
+      return column.name == 'column_name';
+    });
+
+    output.push({
+      table: table_name ? table_name.model : null,
+      column: column_name ? column_name.model : name,
+      string: value.statement
+    });
+  });
+  return output;
+};
+
 var reformat = function(data) {
   var stack = [];
   var root = data;
@@ -108,22 +142,23 @@ var prune = function(data) {
 exports.parseSQL = function(req, res) {
   var command = req.body.sql;
   if (command) {
-    var tree = sql.parse(command);
-    tree = prune(tree);
 
-    /*
+    // parse the tree
+    var tree = sql.parse(command);
+    // clean out junk
+    tree = prune(tree);
+    // simplify
+    tree = reformat(tree);
+    // we now have a better looking tree
+
+    // create tree model to extract data
     var t = new TreeModel();
     var root = t.parse(tree);
 
-    var val = JSON.stringify(root.model, function( key, value) {
-      if( key == 'parent') { return value.id;}
-      else {return value;}
-    });
+    var resultTable = generateResultTable(root);
+    console.log(resultTable);
 
-    return res.send(val);
-    */
 
-    tree = reformat(tree);
 
     //interpretSQL(tree);
 
