@@ -7,41 +7,8 @@ angular.module('sqlvizApp')
     $scope.parsedTreeText = '';
     $scope.parsedTree;
 
-    var cleanupTree = function(data) {
-      var root = data;
-      var queue = [];
-      queue.push(root);
-
-      while (queue.length > 0) {
-        var c = queue.pop();
-
-        if (c.source && c.range) {
-          c.statement = c.source.substr(c.range.location, c.range.length);
-        }
-
-        if (c.children) {
-          c.children.forEach(function(child, index) {
-            if (!child.name) {
-              c.children.splice(index, 1);
-            }
-            else {
-              if (child.name.indexOf('whitespace') > -1) {
-                c.children.splice(index, 1);
-              }
-              else {
-                queue.push(child);
-              }
-            }
-          });
-        }
-      }
-
-      return data;
-    };
-
     $scope.$watch('sqlCommand',
       function(newValue, oldValue) {
-        console.log(newValue + " - " + oldValue);
         if ( newValue !== oldValue ) {
           if (newValue.indexOf(';') != newValue.length - 1) {
             newValue = newValue + ';';
@@ -69,5 +36,4 @@ angular.module('sqlvizApp')
       mode: 'text/x-mysql',
       theme: 'monokai'
     };
-
   });
