@@ -23,7 +23,7 @@ var generateResultTable = function(root) {
 
     var value = node.first(function(n) {
       n = n.model;
-      return n.name == 'value';
+      return n.name == 'expr';
     });
 
     var table_name = value.first(function(table) {
@@ -37,8 +37,8 @@ var generateResultTable = function(root) {
 
     output.push({
       table: table_name ? table_name.model : null,
-      column: column_name ? column_name.model : name,
-      string: value.statement
+      column: column_name ? column_name.model : null,
+      string: value.model.statement
     });
   });
   return output;
@@ -117,6 +117,7 @@ var prune = function(data) {
         if (stmt !== data.name) {
           data.statement = stmt;
           delete data.range;
+          delete data.source;
         }
       }
 
