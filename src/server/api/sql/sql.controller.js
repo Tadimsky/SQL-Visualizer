@@ -286,13 +286,14 @@ var findColumns = function (json) {
 
 
 exports.parseSQL = function(req, res) {
-  var command = (req.body.sql).toUpperCase();
+  var command = req.body.sql;
   if (command) {
 
     // parse the tree
     var tree = sql.parse(command);
     // clean out junk
     tree = prune(tree);
+
     // simplify
     tree = reformat(tree);
     // we now have a better looking tree
@@ -306,8 +307,6 @@ exports.parseSQL = function(req, res) {
 
     var tables = findTables(tree);
     return res.json({tables: tables, tree: tree});
-
-    return res.json(tree);
   }
   else {
     return res.json({});
