@@ -9,6 +9,46 @@ exports.index = function(req, res) {
   res.json([]);
 };
 
+var reformat = function(data) {
+  var stack = [];
+  var root = data;
+  stack.push(root);
+  var cur = stack.pop();
+  while (cur) {
+    if (cur.name == 'select_core') {
+      if (cur.children) {
+        var i = 0;
+        while (i < cur.children.length) {
+          var child = cur.children[i];
+          switch (child.name) {
+            case 'SELECT':
+            case 'FROM':
+            case 'WHERE':
+                  var sibling = cur.children[i+1];
+                  if (sibling) {
+                    child.children = [];
+                    child.children.push(sibling);
+                    cur.children.splice(i+1, 1);
+                  }
+                  i++;
+                  break;
+            default:
+                  i++;
+                  break;
+          }
+        }
+      }
+    }
+    if (cur.children) {
+      cur.children.forEach(function(c) {
+        stack.push(c);
+      });
+    }
+    cur = stack.pop();
+  }
+  return root;
+};
+
 var prune = function(data) {
   if (!data) {
     return null;
@@ -166,7 +206,8 @@ exports.parseSQL = function(req, res) {
   if (command) {
     var tree = sql.parse(command);
     tree = prune(tree);
-    console.log(command);
+    tree = reformat(tree);
+
     //interpretSQL(tree);
 
     return res.json(tree);

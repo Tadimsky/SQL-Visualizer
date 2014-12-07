@@ -4,6 +4,34 @@
 angular.module('sqlvizApp')
   .directive('treeGraph', ['d3Service', function (d3Service) {
 
+    var isTable = function(node) {
+      if (node.name == 'value') {
+        if (node.children.indexOf('table_name')) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+
+    var createTable = function(d3, table) {
+      // create the table header
+
+      var thead = d3.select("thead").selectAll("th")
+        .data(table)
+        .enter().append("th").text(function(d){return d});
+
+      // fill the table
+      // create rows
+      var tr = d3.select("tbody").selectAll("tr")
+        .data(table.columns).enter().append("tr");
+      // cells
+      var td = tr.selectAll("td")
+        .data(function(d){return d3.values(d)})
+        .enter().append("td")
+        .text(function(d) {return d});
+    };
+
     return {
       restrict: 'EA',
       scope: {
@@ -52,6 +80,16 @@ angular.module('sqlvizApp')
               .children(function(d) {
                 return (!d.children || d.children.length === 0) ? null: d.children;
               });
+            /*
+              .separation(function(a, b) {
+                if (a.parent == b.parent) {
+                  if (isTable(a) || isTable(b)) {
+                    return 30;
+                  }
+                }
+                return 10;
+              });
+              */
 
             var diagonal = d3.svg.diagonal()
               .projection(function(d) { return [d.x, d.y]; });
