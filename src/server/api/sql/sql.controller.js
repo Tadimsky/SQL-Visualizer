@@ -5,7 +5,6 @@ var sql = require('./sqlparser.js');
 var crypto = require('crypto');
 var TreeModel = require('tree-model');
 
-// Get list of sqls
 exports.index = function(req, res) {
   res.json([]);
 };
@@ -148,6 +147,9 @@ var findTables = function (json) {
     var uniqueTables = {};
     var visited = {};
     var firstNode = json.children[0];
+    if (!firstNode) {
+      return null;
+    }
     var stack = [];
     stack.push(firstNode);
 
@@ -327,12 +329,16 @@ exports.parseSQL = function(req, res) {
     // create tree model to extract data
     var t = new TreeModel();
     var root = t.parse(tree);
-
+    // calculate the output table
     var resultTable = generateResultTable(root);
-    console.log(resultTable);
 
     var tables = findTables(tree);
-    return res.json({tables: tables, tree: tree});
+    return res.json(
+      {
+        tables: null,
+        tree: tree
+      }
+    );
   }
   else {
     return res.json({});
