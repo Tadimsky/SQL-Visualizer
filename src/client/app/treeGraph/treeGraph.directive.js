@@ -4,10 +4,15 @@
 angular.module('sqlvizApp')
   .directive('treeGraph', ['d3Service', function (d3Service) {
 
+    /**
+     *  Determines whether the node is a table referece
+     */
     var isTable = function(node) {
       if (node.name == 'value') {
-        if (node.children.indexOf('table_name')) {
-          return true;
+        if (node.children) {
+          if (node.children.indexOf('table_name')) {
+            return true;
+          }
         }
       }
       return false;
@@ -33,15 +38,15 @@ angular.module('sqlvizApp')
     };
 
     return {
-      restrict: 'EA',
+      restrict: 'E',
       scope: {
         data: '='
       },
       link: function (scope, element, attrs) {
         d3Service.d3().then(function(d3) {
-          var margin = {top: 0, right: 120, bottom: 20, left: 0},
-            width = 1400 - margin.right - margin.left,
-            height = 1000 - margin.top - margin.bottom;
+          var margin = {top: 10, right: 120, bottom: 20, left: 10},
+            width = 1400,
+            height = 1000;
 
           var svg = d3.select(element[0])
             .append('svg:svg')
@@ -96,8 +101,14 @@ angular.module('sqlvizApp')
 
             // Preparing the data for the tree layout, convert data into an array of nodes
             var nodes = tree.nodes(data);
+            // take the nodes and clean them up
 
-
+            nodes.forEach(function(n) {
+              if (isTable(n)) {
+                //n.name = 'tablbeeee'
+                //n.children = [];
+              }
+            });
 
             // Create an array with all the links
             var links = tree.links(nodes);
@@ -123,6 +134,13 @@ angular.module('sqlvizApp')
               .attr("dy", function(d) { return d.children? -8 : 20 } )
               .attr("text-anchor", 'middle')
               .text(function(d) { return d.name; });
+
+              // place the name atribute left or right depending if children
+            node.append("svg:text")
+              .attr("dx", 0)
+              .attr("dy", 0)
+              .attr("text-anchor", 'middle')
+              .text(function(d) { return isTable(d) ? 'TABLE' : '' });
 
             // place the name atribute left or right depending if children
 
