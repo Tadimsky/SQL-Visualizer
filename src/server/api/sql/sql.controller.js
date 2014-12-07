@@ -68,7 +68,7 @@ var prune = function(data) {
       // never has children
     }
     else {
-      if ((data.name.indexOf('start') > -1) || (data.name.indexOf('source') == 0)){
+      if ((data.name.indexOf('start') == 0 ) || (data.name.indexOf('source') == 0)){
         data = data.children[0];
       }
 
@@ -77,6 +77,7 @@ var prune = function(data) {
         stmt = stmt.trim();
         if (stmt !== data.name) {
           data.statement = stmt;
+          delete data.range;
         }
       }
 
