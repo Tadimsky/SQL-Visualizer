@@ -68,8 +68,13 @@ var prune = function(data) {
       // never has children
     }
     else {
-      if ((data.name.indexOf('start') == 0 ) || (data.name.indexOf('source') == 0)){
-        data = data.children[0];
+      if ((data.name.indexOf('#document') == 0 ) || (data.name.indexOf('start') == 0 ) || (data.name.indexOf('source') == 0)){
+        if (!data.children[0]) {
+          return data;
+        }
+        else {
+          data = data.children[0];
+        }
       }
 
       if (data.range) {
@@ -99,34 +104,6 @@ var prune = function(data) {
   }
   return null;
 };
-
-/**
- * Understand what the SQL is doing.
- * Find out what tables there are in the statement and
- * what columns are in each table.
- *
- * @param data
- */
-var interpretSQL = function(data) {
-  var tables = [];
-
-  var queue = [];
-  queue.push(data);
-
-  while (queue.length > 0) {
-    var cur = queue.pop();
-    console.log(cur.name);
-    if (cur.name == 'table_name') {
-      tables[cur.name] = 'lol';
-    }
-    for (var i = 0; i < cur.children.length; i++) {
-      queue.push(cur.children[i]);
-    }
-  }
-
-  console.log(tables);
-};
-
 
 exports.parseSQL = function(req, res) {
   var command = req.body.sql;
