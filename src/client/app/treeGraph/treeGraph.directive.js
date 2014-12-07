@@ -75,7 +75,7 @@ angular.module('sqlvizApp')
             }
 
             // Create a tree "canvas"
-            var tree = d3.layout.tree()
+            var tree = d3.layout.cluster()
               .size([height,width])
               .children(function(d) {
                 return (!d.children || d.children.length === 0) ? null: d.children;
