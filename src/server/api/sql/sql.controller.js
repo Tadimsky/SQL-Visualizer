@@ -23,12 +23,16 @@ var removeCircularReferences = function(root) {
 
 var simplifyTree = function(root, tables) {
   var nRoot = root.first(function(n) {
-    return n.model.name == 'sql_stmt';
+    return n.model.name == 'select_stmt';
   });
   if (!nRoot) return root;
 
-  nRoot.model.name = 'output';
-  nRoot.model.table = generateResultTable(nRoot);
+  nRoot.all(function(n) {
+    return n.model.name == 'select_stmt';
+  }).forEach(function(n) {
+    n.model.name = 'output';
+    n.model.table = generateResultTable(n);
+  });
 
   // remove select_results node
   var selects = nRoot.all(function(n) {
@@ -68,12 +72,29 @@ var simplifyTree = function(root, tables) {
           return t.model.name == 'expr';
         });
         if (expr) {
-          expr.children = [];
+          //expr.children = [];
         }
         break;
 
     }
   });
+
+  nRoot.all(function(n) {
+    return n.model.name == 'join_op' && n.model.statement == ',';
+  }).forEach(function(n) {n.drop();});
+
+  nRoot.all(function(n) {
+    return n.model.name == 'select_core';
+  }).forEach(function(n) {
+    n.children.forEach(function(child) {
+      n.parent.addChild(child);
+    });
+    n.drop();
+  });
+
+  nRoot.all(function(n) {
+    return n.model.name == 'join_constraint' && n.children.length == 0;
+  }).forEach(function(n) {n.drop();});
 
   nRoot.all(function(n) {
     return n.model.name == 'table';
@@ -89,6 +110,7 @@ var simplifyTree = function(root, tables) {
 };
 
 var generateResultTable = function(root) {
+  console.log(root);
   var output = [];
 
   var visTable = {
@@ -96,36 +118,51 @@ var generateResultTable = function(root) {
     columns: []
   };
 
-  var select_results =  root.all(function(node) {
-    node = node.model;
-    return node.name == 'select_result'
+  var select_results = [];
+  root.walk({strategy: 'breadth'}, function(node) {
+    if (node != root) {
+      switch (node.model.name) {
+        case 'select_result':
+          select_results.push(node);
+          break;
+        case 'select_stmt':
+        case 'output':
+          return false;
+          break;
+      }
+    }
   });
+
+  console.log(select_results);
+
 
   select_results.forEach(function(node) {
     var value = node.first(function(n) {
       n = n.model;
       return n.name == 'expr';
     });
+    if (value) {
+      var table_name = value.first(function (table) {
+        table = table.model;
+        return table.name == 'table_name';
+      });
+      var column_name = value.first(function (column) {
+        column = column.model;
+        return column.name == 'column_name';
+      });
 
-    var table_name = value.first(function(table) {
-      table = table.model;
-      return table.name == 'table_name';
-    });
-    var column_name = value.first(function(column) {
-      column = column.model;
-      return column.name == 'column_name';
-    });
-
-    visTable.columns.push({
-      name: value.model.statement,
-      used: "SELECT"
-    });
-    output.push({
-      table: table_name ? table_name.model : null,
-      column: column_name ? column_name.model : null,
-      string: value.model.statement
-    });
+      visTable.columns.push({
+        name: value.model.statement,
+        used: "SELECT"
+      });
+      output.push({
+        table: table_name ? table_name.model : null,
+        column: column_name ? column_name.model : null,
+        string: value.model.statement
+      });
+    }
   });
+
   return visTable;
 };
 
@@ -398,6 +435,7 @@ var findColumns = function (json) {
     while (stack.length > 0) {
         var topNode = stack.pop();
         var prehash = JSON.stringify(topNode);
+        if (!prehash) {continue;}
         var hashed = crypto.createHash('md5').update(prehash).digest('base64');
         if (!visited.hasOwnProperty(hashed)) {
             if (topNode.name === "value") {
@@ -488,7 +526,7 @@ exports.parseSQL = function(req, res) {
     return res.send(
       {
         tables: tables,
-        tree: null,
+        tree: tree,
         simple: noncircularTree
       }
     );

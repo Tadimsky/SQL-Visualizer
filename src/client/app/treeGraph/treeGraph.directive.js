@@ -222,6 +222,8 @@ angular.module('sqlvizApp')
             var diagonal = d3.svg.diagonal()
               .projection(function(d) { return [d.y, d.x]; });
 
+            var colors = d3.scale.category20()
+
             // Preparing the data for the tree layout, convert data into an array of nodes
             var nodes = tree.nodes(data);
             // take the nodes and clean them up
@@ -235,27 +237,29 @@ angular.module('sqlvizApp')
               .attr("d", diagonal);
 
             var node = svg.selectAll("g.node")
-              .data(nodes)
+              .data(nodes.filter(function(d) {
+                return !d.model.table;
+              }))
               .enter().append("svg:g")
               .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
             // Add the dot at every node
             node.append("svg:circle")
-              .attr("r", 3.5);
+              .attr("r", 10)
+              .attr("fill", function(d) {
+                  return colors(d.depth);
+                });
+
 
             // place the name atribute left or right depending if children
             node.append("svg:text")
               .attr("dx", 0)
               .attr("dy", function(d) { return d.children? -8 : 20 } )
               .attr("text-anchor", 'middle')
-              .text(function(d) { return d.model.name; });
-
-              // place the name atribute left or right depending if children
-            node.append("svg:text")
-              .attr("dx", 0)
-              .attr("dy", 0)
-              .attr("text-anchor", 'middle')
-              .text(function(d) { return isTable(d) ? 'TABLE' : '' });
+              .text(function(d) {
+                if (d.model.table) {return '';}
+                return d.model.name;
+              });
 
             // place the name atribute left or right depending if children
 
@@ -264,7 +268,11 @@ angular.module('sqlvizApp')
                 .attr("dx", 0)
                 .attr("dy", function(d) { return d.children? 15 : 40 } )
                 .attr("text-anchor", 'middle')
-                .text(function(d) {return d.model.statement == d.model.name || d.depth < 4 ? '' : d.model.statement; });
+                .text(function(d) {
+                  // don't draw tables
+                  if (d.model.table) {return '';}
+                  return d.model.statement == d.model.name || d.depth < 4 ? '' : d.model.statement;
+                });
 
             // Create tables at the appropriate nodes.
             nodes.forEach(function (n) {
