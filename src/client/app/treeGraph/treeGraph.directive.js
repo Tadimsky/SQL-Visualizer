@@ -345,6 +345,7 @@ angular.module('sqlvizApp')
 
 
             // place the name atribute left or right depending if children
+            /*
             node.append("svg:text")
               .attr("dx", 0)
               .attr("dy", function(d) { return d.children? -8 : 20 } )
@@ -353,6 +354,7 @@ angular.module('sqlvizApp')
                 if (d.model.table) {return '';}
                 return d.model.name;
               });
+              */
 
             // place the name attribute left or right depending if children
 
