@@ -124,10 +124,10 @@ angular.module('sqlvizApp')
           return 20;
         })
         .attr("stroke", function(d){
-          if(d.selected == "SELECT") {
+          if(d.used == "SELECT") {
             return "yellow";
           }
-          else if(d.selected == "WHERE") {
+          else if(d.used == "WHERE") {
             return "white";
           }
           else {
@@ -150,10 +150,10 @@ angular.module('sqlvizApp')
           return padding - 5;
         })
         .attr("fill", function(d){
-          if(d.selected == "SELECT") {
+          if(d.used == "SELECT") {
             return "yellow";
           }
-          else if(d.selected == "WHERE") {
+          else if(d.used == "WHERE") {
             return "white";
           }
           else {
