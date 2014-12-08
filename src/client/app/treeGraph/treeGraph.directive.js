@@ -42,6 +42,8 @@ angular.module('sqlvizApp')
     var createTable = function(svg, tableObj, x, y) {
 
       var colors = d3.scale.category10();
+      colors(1);
+      colors(2);
 
       var table = [];
       table.push(tableObj);
