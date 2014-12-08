@@ -94,7 +94,15 @@ angular.module('sqlvizApp')
           return 27*(i+1)+padding-innerRectPad;
         })
         .attr("stroke", function(d){
-          return d.selected ? "yellow" : "white";
+          if(d.selected == "SELECT") {
+            return "yellow";
+          }
+          else if(d.selected == "WHERE") {
+            return "white";
+          }
+          else {
+            return "black";
+          }
         })
         .attr("stroke-width", 1)
         .attr("fill", function(d,i) {
