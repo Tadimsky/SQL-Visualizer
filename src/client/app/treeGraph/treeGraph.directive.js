@@ -89,7 +89,7 @@ angular.module('sqlvizApp')
           return 20;
         })
         .attr("y", function(d, i){
-          return 25*(i+1)+padding-innerRectPad;
+          return 27*(i+1)+padding-innerRectPad;
         })
         .attr("stroke", function(d){
           return d.selected ? "yellow" : "white";
@@ -112,10 +112,18 @@ angular.module('sqlvizApp')
         })
         .attr("dx", tableW / 2)
         .attr("dy", function(d,i){
-          return 25*(i+1) + padding;
+          return 27*(i+1) + padding;
         })
         .attr("fill", function(d){
-          return d.selected ? "yellow" : "white";
+          if(d.selected == "SELECT") {
+            return "yellow";
+          }
+          else if(d.selected == "WHERE"){
+            return "white"
+          }
+          else {
+            return "black";
+          }
         })
         .attr("text-anchor", "middle")
         .attr("width", 100)
