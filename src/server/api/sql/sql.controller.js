@@ -27,6 +27,9 @@ var simplifyTree = function(root) {
   });
   if (!nRoot) return root;
 
+  nRoot.model.name = 'output';
+  nRoot.model.table = generateResultTable(nRoot);
+
   // remove select_results node
   var selects = nRoot.all(function(n) {
     return (n.model.name == 'select_results');
@@ -418,7 +421,7 @@ exports.parseSQL = function(req, res) {
     var t = new TreeModel();
     var root = t.parse(tree);
     // calculate the output table
-    var resultTable = generateResultTable(root);
+
 
     var simpleTree = simplifyTree(root);
 
@@ -430,7 +433,6 @@ exports.parseSQL = function(req, res) {
       {
         tables: tables,
         tree: null,
-        output: resultTable,
         simple: noncircularTree
       }
     );
