@@ -21,7 +21,7 @@ angular.module('sqlvizApp')
     var createTable = function(svg, tableObj, x, y) {
       var table = [];
       table.push(tableObj);
-      
+
       var tableW = 150;
       var tableH = 200;
       var padding = 20;

@@ -235,40 +235,61 @@ var findTables = function (json) {
           break;
         }
         var prehash = JSON.stringify(topNode);
-        console.log(prehash);
         var hashed = crypto.createHash('md5').update(prehash).digest('base64');
-        console.log(hashed);
         if (!visited.hasOwnProperty(hashed)) {
             if (topNode.name === "table_name") {
                 returnArray.push((topNode.children)[0].statement);
                 uniqueTables[(topNode.children)[0].statement] = [];
+                //uniqueTables.name = uniqueTables[(topNode.children)[0].statement];
             }
             visited[hashed] = "true";
             stack = stack.concat(topNode.children);
         }
     }
     var tables = addColumns(uniqueTables, json);
-    return tables;
+    var final = formatJSON(tables);
+    return final;
 };
 
+var formatJSON = function (tables) {
+    var result = [];
+
+    for (var key in tables) {
+      var table = {};
+      table.name = key;
+
+      table.columns = tables[key];
+      result.push(table);
+    }
+    return result;
+}
 
 /**
  * Add column objects to the corresponding table
  * @param tables - Map of tables
  */
 var addColumns = function (tables, json) {
+
     var selectColumns = findColumnObject(tables, json, "SELECT");
     var findJoined = findColumnObject(tables, json, "join_source");
     var findWhere = findColumnObject(tables, json, "WHERE");
     var array = selectColumns.concat(findJoined, findWhere);
-    for(var i=0; i<array.length;i++) {
-        var item = array[i];
-        if (tables.hasOwnProperty(item["table"])) {
-            var obj = {};
-            obj[item.column] = item.operator;
-            tables[item["table"]].push(obj); //Add column item to list of columns
+
+
+    for (var key in tables) {
+      if (tables.hasOwnProperty(key)) {
+        for (var i=0; i<array.length;i++) {
+          var tuple = array[i];
+          if (tuple.table === key) {
+            var columnObject = {};
+            columnObject.name = tuple.column;
+            columnObject.used = tuple.operator;
+            tables[key].push(columnObject);
+          }
         }
+      }
     }
+
     console.log(tables);
     return tables;
 };
@@ -366,6 +387,7 @@ var findColumns = function (json) {
         tuple["column"] = column;
         columnTuples.push(tuple);
     }
+
     return columnTuples;
 };
 
