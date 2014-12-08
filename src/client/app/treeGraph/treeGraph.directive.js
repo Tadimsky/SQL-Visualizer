@@ -18,8 +18,10 @@ angular.module('sqlvizApp')
       return false;
     };
 
-    var createTable = function(svg, table, x, y) {
-
+    var createTable = function(svg, tableObj, x, y) {
+      var table = [];
+      table.push(tableObj);
+      
       var tableW = 150;
       var tableH = 200;
       var padding = 20;
@@ -44,8 +46,8 @@ angular.module('sqlvizApp')
         })
         .attr("stroke", "black")
         .attr("stroke-width", 2)
-        .attr("ry", 10)
-        .attr("rx", 10)
+        .attr("ry", 0)
+        .attr("rx", 0)
         .attr("fill", function(d,i) {
           // return "rgb(34,245,185)";
           return "rgb(73,119,188)";
@@ -226,15 +228,21 @@ angular.module('sqlvizApp')
                     objColumns.push(col);
                   }
                 });
+                console.log(objColumns);
                 object["columns"] = objColumns;
                 tables.push(object);
               }
             }
+            //[{},{}]
+
             // Create tables at the appropriate nodes.
+            var count = 0;
             nodes.forEach(function (n) {
-              console.log("hello " + n.model.name);
-              if (n.model.name === "sql_stmt") {
-                createTable(svg, tables, n.y, n.x);
+              if (n.model.name === "table") {
+                //if (n.model.statement.model.statement === (tables[count]).name) {
+                  createTable(svg, tables[count], n.y, n.x);
+                  count++;
+                //}
               }
             });
 
