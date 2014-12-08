@@ -21,7 +21,7 @@ var removeCircularReferences = function(root) {
   return root;
 };
 
-var simplifyTree = function(root) {
+var simplifyTree = function(root, tables) {
   var nRoot = root.first(function(n) {
     return n.model.name == 'sql_stmt';
   });
@@ -32,12 +32,9 @@ var simplifyTree = function(root) {
 
   // remove select_results node
   var selects = nRoot.all(function(n) {
-    return (n.model.name == 'select_results');
+    return (n.model.name == 'SELECT');
   });
   selects.forEach(function(n) {
-    n.children.forEach(function(child) {
-      n.parent.addChild(child);
-    });
     n.drop();
   });
 
@@ -53,7 +50,13 @@ var simplifyTree = function(root) {
         });
         if (table) {
           n.model.name = 'table';
-          n.model.table = table;
+
+          var tableName = table.model.statement;
+          if (tableName) {
+            if (tables.hasOwnProperty(tableName)) {
+              n.model.table = tables[tableName];
+            }
+          }
           n.model.statement = table;
         }
 
@@ -238,9 +241,7 @@ var findTables = function (json) {
           break;
         }
         var prehash = JSON.stringify(topNode);
-        console.log(prehash);
         var hashed = crypto.createHash('md5').update(prehash).digest('base64');
-        console.log(hashed);
         if (!visited.hasOwnProperty(hashed)) {
             if (topNode.name === "table_name") {
                 returnArray.push((topNode.children)[0].statement);
@@ -423,12 +424,10 @@ exports.parseSQL = function(req, res) {
     // calculate the output table
 
 
-    var simpleTree = simplifyTree(root);
+    var simpleTree = simplifyTree(root, tables);
 
     var noncircularTree = removeCircularReferences(simpleTree);
 
-
-    //var tables = findTables(tree);
     return res.send(
       {
         tables: tables,
