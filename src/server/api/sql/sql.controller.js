@@ -91,13 +91,17 @@ var simplifyTree = function(root, tables) {
 var generateResultTable = function(root) {
   var output = [];
 
+  var visTable = {
+    name: 'Output',
+    columns: []
+  };
+
   var select_results =  root.all(function(node) {
     node = node.model;
     return node.name == 'select_result'
   });
 
   select_results.forEach(function(node) {
-
     var value = node.first(function(n) {
       n = n.model;
       return n.name == 'expr';
@@ -112,13 +116,17 @@ var generateResultTable = function(root) {
       return column.name == 'column_name';
     });
 
+    visTable.columns.push({
+      name: value.model.statement,
+      used: "SELECT"
+    });
     output.push({
       table: table_name ? table_name.model : null,
       column: column_name ? column_name.model : null,
       string: value.model.statement
     });
   });
-  return output;
+  return visTable;
 };
 
 var reformat = function(data) {
