@@ -59,9 +59,11 @@ var simplifyTree = function(root) {
         var expr = n.first(function(t) {
           return t.model.name == 'expr';
         });
+        if (expr) {
+          expr.children = [];
+        }
+        break;
 
-        expr.children = [];
-            break;
     }
   });
 
@@ -340,7 +342,7 @@ var findColumns = function (json) {
     for (var i=0; i<returnArray.length; i++) {
         var table = "";
         var column = "";
-        var tuple = {}
+        var tuple = {};
         for (var x=0; x<(returnArray[i]).length; x++) {
             var item = (returnArray[i][x]);
             if (item.name === "table_name") {
