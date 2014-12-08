@@ -258,7 +258,28 @@ var formatJSON = function (tables) {
       var table = {};
       table.name = key;
 
-      table.columns = tables[key];
+
+      var array = tables[key];
+      var dict = {};
+      var lookup = {"SELECT":3, "WHERE":2, "JOIN":1};
+      var col = [];
+      for (var i=0; i<array.length; i++) {
+        var item = array[i];
+
+        if (!dict.hasOwnProperty(item.name)) {
+          dict[item.name] = item.used;
+        }
+        else if (lookup[dict[item.name]] < lookup[item.used]) {
+          dict[item.name] = item.used;
+        }
+      }
+      for (var k in dict) {
+        var o = {};
+        o[k] = dict[k]
+        col.push(o);
+      }
+
+      table.columns = col;
       result.push(table);
     }
     return result;
