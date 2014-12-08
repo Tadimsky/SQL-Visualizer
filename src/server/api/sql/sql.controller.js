@@ -507,13 +507,12 @@ var findWheres = function(root, tableName, columnData) {
   var wheres = [];
 
   var where = root.first(function(n) {
-    return n.model.name = 'WHERE';
+    return n.model.name == 'WHERE';
   });
 
   if (where) {
-
     where.walk(function (expr) {
-      // at a join
+      // at a where
       if (expr.model.name == 'expr') {
         expr.walk(function (column) {
           if (column.model.name == 'column_name' && column.model.statement == columnData.name) {
