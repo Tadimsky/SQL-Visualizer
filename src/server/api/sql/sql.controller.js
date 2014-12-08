@@ -112,6 +112,10 @@ var simplifyTree = function(root, tables) {
     });
   });
 
+  nRoot.first(function(n) {
+    return n.model.name == 'WHERE';
+  }).drop();
+
 
   return nRoot;
 };
