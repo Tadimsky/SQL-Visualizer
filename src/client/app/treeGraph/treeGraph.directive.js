@@ -39,7 +39,6 @@ angular.module('sqlvizApp')
 
     var tableHeight = function(d) {
       var length = d.columns.length;
-      console.log(length*32+21);
       return length * 32 + 21;
     }
 
@@ -169,6 +168,7 @@ angular.module('sqlvizApp')
         .attr("width", 100)
         .attr("height", 20);
 
+      var whereLen = 0;
       var whereGroup = columns.selectAll('g')
         .data(function(d) {
           return d.where;
@@ -176,6 +176,7 @@ angular.module('sqlvizApp')
         .enter()
         .append("g")
         .attr("transform", function(d, i) {
+          whereLen += d.op.length * 9 * i + tableW;
           return "translate(" + (d.op.length * 9 * i + tableW) + ", " +  0+ ")";
         });
 
@@ -193,6 +194,44 @@ angular.module('sqlvizApp')
 
       //text for where
       whereGroup
+        .append("text")
+        .text(function(d) {
+          return d.op;
+        })
+        .attr("dx", function(d, i){
+          return 20;
+        })
+        .attr("dy", 15)
+        .attr("text-anchor", "middle")
+        .attr("width", 100)
+        .attr("height", 20);
+
+
+        var joinGroup = columns.selectAll('g')
+        .data(function(d) {
+          return d.where;
+        })
+        .enter()
+        .append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + (d.op.length * 9 * i + whereLen) + ", " +  0+ ")";
+        });
+
+        //rect for join
+        joinGroup
+        .append("rect")
+        .attr("width", function(d) {
+          return d.op.length * 12;
+        })
+        .attr("height", function(d){
+          return 20;
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("fill", "teal");
+
+      //text for join
+      joinGroup
         .append("text")
         .text(function(d) {
           return d.op;
