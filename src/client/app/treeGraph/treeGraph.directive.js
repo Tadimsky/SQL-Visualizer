@@ -14,6 +14,7 @@ angular.module('sqlvizApp')
     var maxTextWidth = function(title, array, field) {
 
       var minWidth = title.length * 12;
+      minWidth = minWidth < 50 ? 50 : minWidth;
 
       var PX_PER_CHAR = 10;
 
@@ -39,6 +40,9 @@ angular.module('sqlvizApp')
     }
 
     var createTable = function(svg, tableObj, x, y) {
+
+      var colors = d3.scale.category10();
+
       var table = [];
       table.push(tableObj);
 
@@ -180,14 +184,14 @@ angular.module('sqlvizApp')
       whereGroup
         .append("rect")
         .attr("width", function(d) {
-          return d.op.length * 12;
+          return d.op.length * 8;
         })
         .attr("height", function(d){
           return 20;
         })
-        .attr("stroke", "black")
-        .attr("stroke-width", 1)
-        .attr("fill", "white");
+        //.attr("stroke", function() { return colors(4); })
+        //.attr("stroke-width", 1)
+        .attr("fill", function() { return colors(2); });
 
       //text for where
       whereGroup
@@ -196,7 +200,7 @@ angular.module('sqlvizApp')
           return d.op;
         })
         .attr("dx", function(d, i){
-          return 2;
+          return 5;
         })
         .attr("dy", 15)
         .attr("text-anchor", "left")
@@ -218,14 +222,14 @@ angular.module('sqlvizApp')
         joinGroup
         .append("rect")
         .attr("width", function(d) {
-          return d.op.length * 12;
+          return d.op.length * 8;
         })
         .attr("height", function(d){
           return 20;
         })
-        .attr("stroke", "teal")
-        .attr("stroke-width", 1)
-        .attr("fill", "teal");
+        //.attr("stroke", function() { return colors(3); })
+        //.attr("stroke-width", 1)
+        .attr("fill", function() { return colors(1); });
 
       //text for join
       joinGroup
@@ -234,7 +238,7 @@ angular.module('sqlvizApp')
           return d.op;
         })
         .attr("dx", function(d, i){
-          return 20;
+          return 5;
         })
         .attr("dy", 15)
         .attr("text-anchor", "left")
@@ -309,7 +313,7 @@ angular.module('sqlvizApp')
             var diagonal = d3.svg.diagonal()
               .projection(function(d) { return [d.y, d.x]; });
 
-            var colors = d3.scale.category20()
+            var colors = d3.scale.category20();
 
             // Preparing the data for the tree layout, convert data into an array of nodes
             var nodes = tree.nodes(data);
