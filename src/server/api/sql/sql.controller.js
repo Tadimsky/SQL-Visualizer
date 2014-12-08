@@ -21,20 +21,20 @@ var removeCircularReferences = function(root) {
   return root;
 };
 
-var simplifyTree = function(root) {
+var simplifyTree = function(root, tables) {
   var nRoot = root.first(function(n) {
     return n.model.name == 'sql_stmt';
   });
   if (!nRoot) return root;
 
+  nRoot.model.name = 'output';
+  nRoot.model.table = generateResultTable(nRoot);
+
   // remove select_results node
   var selects = nRoot.all(function(n) {
-    return (n.model.name == 'select_results');
+    return (n.model.name == 'SELECT');
   });
   selects.forEach(function(n) {
-    n.children.forEach(function(child) {
-      n.parent.addChild(child);
-    });
     n.drop();
   });
 
@@ -50,7 +50,13 @@ var simplifyTree = function(root) {
         });
         if (table) {
           n.model.name = 'table';
-          n.model.table = table;
+
+          var tableName = table.model.statement;
+          if (tableName) {
+            if (tables.hasOwnProperty(tableName)) {
+              n.model.table = tables[tableName];
+            }
+          }
           n.model.statement = table;
         }
 
@@ -461,19 +467,16 @@ exports.parseSQL = function(req, res) {
     var t = new TreeModel();
     var root = t.parse(tree);
     // calculate the output table
-    var resultTable = generateResultTable(root);
 
-    var simpleTree = simplifyTree(root);
+
+    var simpleTree = simplifyTree(root, tables);
 
     var noncircularTree = removeCircularReferences(simpleTree);
 
-
-    //var tables = findTables(tree);
     return res.send(
       {
         tables: tables,
         tree: null,
-        output: resultTable,
         simple: noncircularTree
       }
     );
