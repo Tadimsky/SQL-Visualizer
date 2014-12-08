@@ -117,15 +117,7 @@ angular.module('sqlvizApp')
           return 27*(i+1) + padding;
         })
         .attr("fill", function(d){
-          if(d.selected == "SELECT") {
-            return "yellow";
-          }
-          else if(d.selected == "WHERE"){
-            return "white"
-          }
-          else {
-            return "black";
-          }
+          return d.selected ? "yellow" : "white";
         })
         .attr("text-anchor", "middle")
         .attr("width", 100)
