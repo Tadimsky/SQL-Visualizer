@@ -212,16 +212,6 @@ angular.module('sqlvizApp')
             // Preparing the data for the tree layout, convert data into an array of nodes
             var nodes = tree.nodes(data);
             // take the nodes and clean them up
-
-            // Create tables at the appropriate nodes.
-            nodes.forEach(function (n) {
-              if (n.model.table && n.model.name != 'output') {
-                //if (n.model.statement.model.statement === (tables[count]).name) {
-                  createTable(svg, n.model.table, n.y, n.x);
-                //}
-              }
-            });
-
             // Create an array with all the links
             var links = tree.links(nodes);
 
@@ -262,6 +252,16 @@ angular.module('sqlvizApp')
                 .attr("dy", function(d) { return d.children? 15 : 40 } )
                 .attr("text-anchor", 'middle')
                 .text(function(d) {return d.model.statement == d.model.name || d.depth < 4 ? '' : d.model.statement; });
+
+            // Create tables at the appropriate nodes.
+            nodes.forEach(function (n) {
+              if (n.model.table) {
+                //if (n.model.statement.model.statement === (tables[count]).name) {
+                createTable(svg, n.model.table, n.y, n.x);
+                //}
+              }
+            });
+
 
           }
         });
