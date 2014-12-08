@@ -37,12 +37,18 @@ angular.module('sqlvizApp')
       return maxChar * PX_PER_CHAR;
     };
 
+    var tableHeight = function(d) {
+      var length = d.columns.length;
+      console.log(length*32+21);
+      return length * 32 + 21;
+    }
+
     var createTable = function(svg, tableObj, x, y) {
       var table = [];
       table.push(tableObj);
 
       var tableW = maxTextWidth(tableObj.columns, function(item) { return item.name; });
-      var tableH = 200;
+      var tableH = tableHeight(tableObj);
       var padding = 20;
       var innerRectPad = 13;
 
@@ -55,7 +61,7 @@ angular.module('sqlvizApp')
         .append("svg:g")
         .attr("type", "table")
         .attr("transform", function(d, i) {
-          return "translate(" + x + ", " + y + ")";
+          return "translate(" + x + ", " + (y-(tableH/2)) + ")";
         });
 
       var tables = rects;
@@ -64,10 +70,7 @@ angular.module('sqlvizApp')
         .append("rect")
         .attr("class", "rect")
         .attr("width", tableW)
-        .attr("height", function(d){
-          var length = d.columns.length;
-          return length * 32 + 21;
-        })
+        .attr("height", tableH)
         .attr("stroke", "black")
         .attr("stroke-width", 2)
         .attr("ry", 0)
