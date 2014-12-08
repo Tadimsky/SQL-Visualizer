@@ -163,7 +163,8 @@ angular.module('sqlvizApp')
 
       var whereLen = 0;
       var whereGroup = columns.selectAll('g')
-        .datum(function(d) {
+        .data(function(d) {
+          console.log(d);
           return d.where;
         })
         .enter()
