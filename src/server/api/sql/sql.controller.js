@@ -218,6 +218,7 @@ var findTables = function (json) {
     var uniqueTables = {};
     var visited = {};
     var firstNode = json.children[0];
+
     if (!firstNode) {
       return null;
     }
@@ -230,8 +231,13 @@ var findTables = function (json) {
 
     while (stack.length > 0) {
         var topNode = stack.pop();
+        if (!topNode) {
+          break;
+        }
         var prehash = JSON.stringify(topNode);
+        console.log(prehash);
         var hashed = crypto.createHash('md5').update(prehash).digest('base64');
+        console.log(hashed);
         if (!visited.hasOwnProperty(hashed)) {
             if (topNode.name === "table_name") {
                 returnArray.push((topNode.children)[0].statement);
@@ -282,6 +288,9 @@ var findColumnObject = function (tables, json, operator) {
 
     while (stack.length > 0) {
         var topNode = stack.pop();
+        if (!topNode) {
+          break;
+        }
         var prehash = JSON.stringify(topNode);
         var hashed = crypto.createHash('md5').update(prehash).digest('base64');
         if (!visited.hasOwnProperty(hashed)) {
@@ -324,6 +333,7 @@ var findColumns = function (json) {
     var firstNode = json;
     var stack = [];
     stack.push(firstNode);
+
 
     while (stack.length > 0) {
         var topNode = stack.pop();
@@ -401,6 +411,9 @@ exports.parseSQL = function(req, res) {
     tree = reformat(tree);
     // we now have a better looking tree
 
+    // THIS NEEDS TO STAY HERE
+    var tables = findTables(tree);
+
     // create tree model to extract data
     var t = new TreeModel();
     var root = t.parse(tree);
@@ -411,10 +424,11 @@ exports.parseSQL = function(req, res) {
 
     var noncircularTree = removeCircularReferences(simpleTree);
 
+
     //var tables = findTables(tree);
     return res.send(
       {
-        tables: null,
+        tables: tables,
         tree: null,
         output: resultTable,
         simple: noncircularTree
