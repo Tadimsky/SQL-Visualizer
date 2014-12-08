@@ -2,89 +2,200 @@
 <HTML>
   <HEAD>
     <TITLE>DB Project</TITLE>
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
   </HEAD>
   <BODY>
 
   <script type="text/javascript">
-  var createTable = function(svg, table, x, y) {
 
-    var tableW = 150;
-    var tableH = 200;
-    var padding = 20;
+    var maxTextWidth = function(array, field) {
+      var PX_PER_CHAR = 8;
 
-    var rects = svg.selectAll("body")
-    .data(table)
-    .enter()
-    .append("svg:g")
-    .attr("transform", function(d, i) {
-      return "translate(" + x + ", " + y + ")";
-    });
+      if (!array) return 0;
 
+      var maxChar = 0;
 
-    rects
-    .append("rect")
-    .attr("width", tableW)
-    .attr("height", function(d){
-      var length = d.columns.length;
-      return length * 30 + 25;
-    })
-    .attr("stroke", "black")
-    .attr("stroke-width", 5)
-    .attr("ry", padding)
-    .attr("rx", padding)
-    .attr("fill", function(d,i) {
-      // return "rgb(34,245,185)";
-      return "rgb(73,119,188)";
-    });
+      array.forEach(function(item) {
+        var text = field(item);
+        var len = text.length;
+
+        if (len > maxChar) {
+          maxChar = len;
+        }
+      });
+
+      return maxChar * PX_PER_CHAR;
+    };
+
+    var createTable = function(svg, tableObj, x, y) {
+      var table = [];
+      table.push(tableObj);
+
+      var tableW = maxTextWidth(tableObj.columns, function(item) { return item.name; });
+      var tableH = 200;
+      var padding = 20;
+      var innerRectPad = 13;
 
 
-    //headers
-    rects
-    .append("svg:text")
-    .text(function(d){
-      return d.name
-    })
-    .attr("dx", tableW / 2)
-    .attr("dy", 15)
-    .attr("width", 100)
-    .attr("height", 20)
-    .attr("font-size", 16)
-    .attr("fill", "white")
-    .attr("font-weight", "bold")
-    .attr("text-anchor", "middle");
+      // find max width of columns
 
-    rects
-    .append("line")
-    .attr("x1", 0)
-    .attr("y1", padding)
-    .attr("x2", tableW)
-    .attr("y2", padding)
-    .attr("stroke", "black")
-    .attr("stroke-width", 3);
+      var rects = svg.selectAll("body")
+        .data(table)
+        .enter()
+        .append("svg:g")
+        .attr("type", "table")
+        .attr("transform", function(d, i) {
+          return "translate(" + x + ", " + y + ")";
+        });
+
+      var tables = rects;
+
+      tables
+        .append("rect")
+        .attr("class", "rect")
+        .attr("width", tableW)
+        .attr("height", function(d){
+          var length = d.columns.length;
+          return length * 32 + 21;
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 2)
+        .attr("ry", 0)
+        .attr("rx", 0)
+        .attr("fill", function(d,i) {
+          // return "rgb(34,245,185)";
+          return "rgb(73,119,188)";
+        });
+
+      //headers
+      tables
+        .append("svg:text")
+        .text(function(d){
+          return d.name
+        })
+        .attr("dx", tableW / 2)
+        .attr("dy", 15)
+        .attr("width", 100)
+        .attr("height", 20)
+        .attr("font-size", 16)
+        .attr("fill", "white")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "middle");
+
+      tables
+        .append("line")
+        .attr("x1", 0)
+        .attr("y1", padding)
+        .attr("x2", tableW)
+        .attr("y2", padding)
+        .attr("stroke", "black")
+        .attr("stroke-width", 3);
+
+      //inner rects
+      var columns = rects.selectAll("g[type='table']")
+        .data(function(d) {
+          return d.columns;
+        })
+        .enter()
+        .append("g")
+        .attr("transform", function(d, i) {
+          var trans = "translate(";
+          trans += 3;
+          trans += ", ";
+          trans += (27*(i+1)+padding-innerRectPad);
+          trans += ")";
+
+          return trans;
+        })
+        .attr("type", "column-group");
+
+      columns
+        .append("rect")
+        .attr("width", tableW-6)
+        .attr("height", function(d){
+          return 20;
+        })
+        .attr("stroke", function(d){
+          if(d.selected == "SELECT") {
+            return "yellow";
+          }
+          else if(d.selected == "WHERE") {
+            return "white";
+          }
+          else {
+            return "black";
+          }
+        })
+        .attr("stroke-width", 1)
+        .attr("fill", function(d,i) {
+          // return "rgb(34,245,185)";
+          return "rgba(34,245,0,0.3)";
+        });
+
+      columns
+        .append("text")
+        .text(function(d) {
+          return d.name;
+        })
+        .attr("dx", tableW / 2)
+        .attr("dy", function(d,i){
+          return padding - 5;
+        })
+        .attr("fill", function(d){
+          if(d.selected == "SELECT") {
+            return "yellow";
+          }
+          else if(d.selected == "WHERE") {
+            return "white";
+          }
+          else {
+            return "black";
+          }
+        })
+        .attr("text-anchor", "middle")
+        .attr("width", 100)
+        .attr("height", 20);
+
+      var whereGroup = columns.selectAll('g')
+        .data(function(d) {
+          return d.where;
+        })
+        .enter()
+        .append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + (tableW * (i+1) + 10) + ", " + 10 + ")";
+        });
+
+      whereGroup
+        .append("rect")
+        .attr("width", function(d) {
+          return d.op.length * 12;
+        })
+        .attr("height", function(d){
+          return 20;
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("fill", "white");
+
+      //text for where
+      whereGroup
+        .append("text")
+        .text(function(d) {
+          return d.op;
+        })
+        .attr("dx", function(d, i){
+          return 20;
+        })
+        .attr("dy", 15)
+        .attr("text-anchor", "middle")
+        .attr("width", 100)
+        .attr("height", 20);
 
 
-    //columns
-    rects.selectAll("g")
-    .data(function(d) {
-      return d.columns;
-    })
-    .enter()
-    .append("text")
-    .text(function(d) {
-      return d.name;
-    })
-    .attr("dx", tableW / 2)
-    .attr("dy", function(d,i){
-      return 25*(i+1) + padding;
-    })
-    .attr("fill", function(d){
-      return d.selected ? "yellow" : "white";
-    })
-    .attr("text-anchor", "middle")
-    .attr("width", 100)
-    .attr("height", 20);
-  };
+    };
+
+
   var w = 1000;
   var h = 1000;
 
@@ -93,28 +204,27 @@
   .attr("height", h);
 
 
-  var table = [
+  var table =
   {name: "Book",
-  columns: [{name: "Author", selected: true},
-  {name: "Genre", selected: true},
-  {name: "Type", selected: false},
-  {name: "Yolomir the Mighty", selected:true}]
-}];
+  columns: [{name: "Author", selected: "SELECT", where: [{op: ">10"}, {op: " = 10"}]},
+  {name: "Genre", selected: "SELECT", where:[]},
+  {name: "Type", selected: "JOIN", where:[]},
+  {name: "Yolomir the Mighty", selected:"SELECT", where:[]}]
+};
 
-var t = [
+var t =
   {name: "Book",
-  columns: [{name: "Author", selected: false},
-  {name: "Genre", selected: true},
-  {name: "Type", selected: false},
-  {name: "Yolomir the Unmighty", selected:true}]
-}];
+  columns: [{name: "Author", selected: "WHERE", where:[]},
+  {name: "Genre", selected: "SELECT", where:[]},
+  {name: "Type", selected: "WHERE", where:[]},
+  {name: "Yolomir the Unmighty", selected:"SELECT", where:[]}]
+};
 
 
 var x = 10;
 var y = 100;
 
 createTable(svg, table, x, y);
-createTable(svg, table, 100, 30);
 createTable(svg, t, 500, 500);
 
 </script>

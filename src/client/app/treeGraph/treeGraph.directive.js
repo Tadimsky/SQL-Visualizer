@@ -80,7 +80,7 @@ angular.module('sqlvizApp')
 
 
       //inner rects
-      rects.selectAll("g")
+      var innerRects = rects.selectAll("g")
         .data(function(d) {
           return d.columns;
         })
@@ -138,6 +138,19 @@ angular.module('sqlvizApp')
         .attr("text-anchor", "middle")
         .attr("width", 100)
         .attr("height", 20);
+
+    //rects for where
+    innerRect.selectAll("g")
+      .data(d.where)
+      .enter()
+      .append("rect")
+      .attr("width", tableW-2)
+      .attr("height", function(d){
+        return 20;
+      })
+      .attr("x", function(d, i){
+        return tableW + 10;
+      });
     };
 
     return {
