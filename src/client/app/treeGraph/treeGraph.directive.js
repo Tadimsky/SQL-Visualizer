@@ -224,8 +224,8 @@ angular.module('sqlvizApp')
             }
             // Create tables at the appropriate nodes.
             nodes.forEach(function (n) {
-              console.log("hello " + n);
-              if (n.name === "sql_stmt") {
+              console.log("hello " + n.model.name);
+              if (n.model.name === "sql_stmt") {
                 createTable(svg, tables, n.y, n.x);
               }
             });
