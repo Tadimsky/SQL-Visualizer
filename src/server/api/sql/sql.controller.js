@@ -153,6 +153,10 @@ var findTables = function (json) {
     var stack = [];
     stack.push(firstNode);
 
+    if (!firstNode) {
+      return null;
+    }
+
     while (stack.length > 0) {
         var topNode = stack.pop();
         var prehash = JSON.stringify(topNode);

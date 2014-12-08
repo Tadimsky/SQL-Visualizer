@@ -18,23 +18,83 @@ angular.module('sqlvizApp')
       return false;
     };
 
+    var createTable = function(svg, table, x, y) {
 
-    var createTable = function(d3, table) {
-      // create the table header
+      var tableW = 150;
+      var tableH = 200;
+      var padding = 20;
 
-      var thead = d3.select("thead").selectAll("th")
+      var rects = svg.selectAll("body")
         .data(table)
-        .enter().append("th").text(function(d){return d});
+        .enter()
+        .append("svg:g")
+        .attr("transform", function(d, i) {
+          return "translate(" + x + ", " + y + ")";
+        });
 
-      // fill the table
-      // create rows
-      var tr = d3.select("tbody").selectAll("tr")
-        .data(table.columns).enter().append("tr");
-      // cells
-      var td = tr.selectAll("td")
-        .data(function(d){return d3.values(d)})
-        .enter().append("td")
-        .text(function(d) {return d});
+
+      rects
+        .append("rect")
+        .attr("width", tableW)
+        .attr("height", function(d){
+          var length = d.columns.length;
+          return length * 30 + 25;
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 5)
+        .attr("ry", padding)
+        .attr("rx", padding)
+        .attr("fill", function(d,i) {
+          // return "rgb(34,245,185)";
+          return "rgb(73,119,188)";
+        });
+
+
+      //headers
+      rects
+        .append("svg:text")
+        .text(function(d){
+          return d.name
+        })
+        .attr("dx", tableW / 2)
+        .attr("dy", 15)
+        .attr("width", 100)
+        .attr("height", 20)
+        .attr("font-size", 16)
+        .attr("fill", "white")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "middle");
+
+      rects
+        .append("line")
+        .attr("x1", 0)
+        .attr("y1", padding)
+        .attr("x2", tableW)
+        .attr("y2", padding)
+        .attr("stroke", "black")
+        .attr("stroke-width", 3);
+
+
+      //columns
+      rects.selectAll("g")
+        .data(function(d) {
+          return d.columns;
+        })
+        .enter()
+        .append("text")
+        .text(function(d) {
+          return d.name;
+        })
+        .attr("dx", tableW / 2)
+        .attr("dy", function(d,i){
+          return 25*(i+1) + padding;
+        })
+        .attr("fill", function(d){
+          return d.selected ? "yellow" : "white";
+        })
+        .attr("text-anchor", "middle")
+        .attr("width", 100)
+        .attr("height", 20);
     };
 
     return {
@@ -55,6 +115,8 @@ angular.module('sqlvizApp')
             .append('g')
             .attr("transform", "translate(" + margin.left +  "," + margin.top + ")");
 
+
+
           window.onresize = function() {
             scope.$apply();
           };
@@ -71,7 +133,7 @@ angular.module('sqlvizApp')
 
           scope.render = function(jsonData) {
 
-            var data = jsonData;
+            var data = jsonData.tree;
 
             svg.selectAll('*').remove();
 
@@ -102,6 +164,38 @@ angular.module('sqlvizApp')
             // Preparing the data for the tree layout, convert data into an array of nodes
             var nodes = tree.nodes(data);
             // take the nodes and clean them up
+
+            // Temporary reformatting of JSON for createTable
+            var tableObject = jsonData.tables;
+            var tables = [];
+            for (var key in tableObject) {
+              if (tableObject.hasOwnProperty(key)) {
+                var object = {};
+                var columns = [];
+                var objColumns = [];
+                object["name"] = key;
+
+                (tableObject[key]).forEach( function (column) {
+                  if (columns.indexOf(column) == -1) {
+                    var col = {};
+                    for (var k in column) {
+                      col["name"] = k;
+                    }
+                    col["selected"] = true;
+                    columns.push(column);
+                    objColumns.push(col);
+                  }
+                });
+                object["columns"] = objColumns;
+                tables.push(object);
+              }
+            }
+            // Create tables at the appropriate nodes.
+            nodes.forEach(function (n) {
+              if (n.name === "source") {
+                createTable(svg, tables, n.y, n.x);
+              }
+            });
 
             nodes.forEach(function(n) {
               if (isTable(n)) {
