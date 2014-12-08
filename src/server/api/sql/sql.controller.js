@@ -300,25 +300,71 @@ var findTables = function (json) {
         }
     }
     var tables = addColumns(uniqueTables, json);
-    var final = formatJSON(tables);
+    findWhere(json);
+    var where = findWhere(json);
+    var final = formatJSON(tables, where);
     return final;
 };
 
-var formatJSON = function (tables) {
+var findWhere = function(json) {
+  var whereObj = getItem(json, "WHERE");
+  var obj = findColumnsSpecific(whereObj);
+  var item = obj[1];
+  var op = obj[2];
+
+  var formatted = {};
+  formatted["table"] =  item.table;
+  formatted["column"] = item.column;
+  formatted["op"] = op.operation+item.table+"."+item.column;
+
+  return formatted;
+
+}
+
+var getItem = function (json, name) {
+  //var returnArray = [];
+  var returnObj = {};
+  var visited = {};
+  var firstNode = json;
+  var stack = [];
+  stack.push(firstNode);
+
+  if (!firstNode) {
+    return null;
+  }
+
+  while (stack.length > 0) {
+    var topNode = stack.pop();
+    var prehash = JSON.stringify(topNode);
+    if (!prehash) {continue;}
+    var hashed = crypto.createHash('md5').update(prehash).digest('base64');
+    if (!visited.hasOwnProperty(hashed)) {
+      if (topNode.name === name) {
+        //returnArray.push(topNode.children);
+        returnObj = topNode;
+      }
+      visited[hashed] = "true";
+      stack = stack.concat(topNode.children);
+    }
+  }
+
+  return returnObj;
+}
+
+var formatJSON = function (tables, where) {
     var result = [];
 
     for (var key in tables) {
       var table = {};
       table.name = key;
 
-
       var array = tables[key];
+
       var dict = {};
       var lookup = {"SELECT":3, "WHERE":2, "JOIN":1};
       var col = [];
       for (var i=0; i<array.length; i++) {
         var item = array[i];
-
         if (!dict.hasOwnProperty(item.name)) {
           dict[item.name] = item.used;
         }
@@ -329,8 +375,17 @@ var formatJSON = function (tables) {
       for (var k in dict) {
         var o = {};
         //o[k] = dict[k];
+
         o.name = k;
         o.selected = dict[k];
+
+        if (key === where.table && k === where.column) {
+          o.where = where.op;
+        }
+        else {
+          o.where = {};
+        }
+
         col.push(o);
       }
 
@@ -467,6 +522,56 @@ var findColumns = function (json) {
 
     return columnTuples;
 };
+
+var findColumnsSpecific = function (json) {
+  var returnArray = [];
+  var visited = {};
+  var binaryOp = {};
+  var firstNode = json;
+  var stack = [];
+  stack.push(firstNode);
+
+
+  while (stack.length > 0) {
+    var topNode = stack.pop();
+    var prehash = JSON.stringify(topNode);
+    if (!prehash) {continue;}
+    var hashed = crypto.createHash('md5').update(prehash).digest('base64');
+    if (!visited.hasOwnProperty(hashed)) {
+      if (topNode.name === "value") {
+        returnArray.push(topNode.children);
+      }
+      if (topNode.name === "binary_operator") {
+        binaryOp["operation"] = topNode.statement;
+      }
+      visited[hashed] = "true";
+      stack = stack.concat(topNode.children);
+    }
+  }
+  var columnTuples = [];
+
+  for (var i=0; i<returnArray.length; i++) {
+    var table = "";
+    var column = "";
+    var tuple = {};
+    for (var x=0; x<(returnArray[i]).length; x++) {
+      var item = (returnArray[i][x]);
+      if (item.name === "table_name") {
+        table = item.statement;
+      }
+      else if (item.name === "column_name") {
+        column = item.statement;
+      }
+    }
+    tuple["table"] = table;
+    tuple["column"] = column;
+    columnTuples.push(tuple);
+  }
+  columnTuples.push(binaryOp);
+
+  return columnTuples;
+};
+
 
 exports.getTables = function (req, res) {
     var command = (req.body.sql).toUpperCase();
