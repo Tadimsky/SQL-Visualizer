@@ -469,6 +469,52 @@ var findColumns = function (json) {
     return columnTuples;
 };
 
+
+var findJoins = function(root, tableName, columnData, columnNode) {
+  var joins = [];
+
+  root.walk(function(join) {
+    // at a join
+    if (join.model.name == 'join_constraint') {
+      join.walk(function(column) {
+        if (column.model.name == 'column_name' && column.model.statement == columnData.name) {
+          // at a column ref for this column
+          // parent is value
+          var table = column.parent.first(function(tab) {
+            return tab.model.name == 'table_name' && tab.model.statement == tableName;
+          });
+          if (table) {
+            // we're at the right table and column!
+            var text = join.first(function(n) {
+              return n.model.name == 'expr';
+            });
+            if (text) {
+              joins.push({op: text.model.statement});
+            }
+          }
+        }
+      })
+    }
+  });
+  return joins;
+};
+
+var findColumnUse = function(col) {
+    var cur = col;
+    while (cur != null) {
+      switch (cur.model.name) {
+        case 'join_constraint':
+          return 'JOIN';
+          break;
+        case 'select_results':
+          return 'SELECT';
+          break;
+      }
+      cur = cur.parent;
+    }
+    return 'WHERE';
+  };
+
 var getTables = function(root) {
   var tableMap = {};
 
@@ -491,25 +537,13 @@ var getTables = function(root) {
       var col = n.parent.first(function(no) { return no.model.name == 'column_name'});
       if (col) {
         var table = tableMap[n.model.statement];
-        var column = {name: col.model.statement, used: 'NONE' };
+        var column = {name: col.model.statement, used: 'WHERE' };
         if (table) {
           if (!table.columns.hasOwnProperty(column.name)) {
             // traverse up from col
-            var cur = col;
-            while (cur != null) {
-              switch (cur.model.name) {
-                case 'join_constraint':
-                      column.used = 'JOIN';
-                      break;
-                case 'select_results':
-                  column.used = 'SELECT';
-                  break;
-              }
-              if (cur.model.statement == 'WHERE') {
-                column.used = 'WHERE';
-              }
-              cur = cur.parent;
-            }
+
+            column.join = findJoins(root, table.name, column, col);
+            column.used = findColumnUse(col);
             table.columns[column.name] = column;
           }
         }
