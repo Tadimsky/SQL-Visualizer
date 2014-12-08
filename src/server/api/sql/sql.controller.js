@@ -9,6 +9,15 @@ exports.index = function(req, res) {
   res.json([]);
 };
 
+var columnObjToArray = function(table) {
+  var cols = [];
+  for (var x in table.columns) {
+    cols.push(table.columns[x]);
+  }
+  table.columns = cols;
+  return table
+};
+
 var removeCircularReferences = function(root) {
   root.walk(function(n) {
     if (n.model.children) {
@@ -57,11 +66,9 @@ var simplifyTree = function(root, tables) {
 
           var tableName = table.model.statement;
           if (tableName) {
-            tables.forEach(function(t) {
-              if (t.name == tableName) {
-                n.model.table = t;
-              }
-            });
+            if (tables[tableName]) {
+              n.model.table = columnObjToArray(tables[tableName]);
+            }
           }
           n.model.statement = table;
         }
@@ -80,7 +87,7 @@ var simplifyTree = function(root, tables) {
   });
 
   nRoot.all(function(n) {
-    return n.model.name == 'join_op' && n.model.statement == ',';
+    return n.model.name == 'join_op'; // && (n.model.statement == ',' || n.model.statement == 'ON');
   }).forEach(function(n) {n.drop();});
 
   nRoot.all(function(n) {
@@ -365,8 +372,6 @@ var addColumns = function (tables, json) {
         }
       }
     }
-
-    console.log(tables);
     return tables;
 };
 
@@ -468,34 +473,92 @@ var findColumns = function (json) {
     return columnTuples;
 };
 
-exports.getTables = function (req, res) {
-    var command = (req.body.sql).toUpperCase();
-    if (command) {
-        var tree = sql.parse(command);
-        tree = prune(tree);
-        tree = reformat(tree);
-        var tables = findTables(tree);
-        //console.log(tables);
-        return res.json([{"tables":tables}, {"tree":tree}]);
+
+var findJoins = function(root, tableName, columnData, columnNode) {
+  var joins = [];
+
+  root.walk(function(join) {
+    // at a join
+    if (join.model.name == 'join_constraint') {
+      join.walk(function(column) {
+        if (column.model.name == 'column_name' && column.model.statement == columnData.name) {
+          // at a column ref for this column
+          // parent is value
+          var table = column.parent.first(function(tab) {
+            return tab.model.name == 'table_name' && tab.model.statement == tableName;
+          });
+          if (table) {
+            // we're at the right table and column!
+            var text = join.first(function(n) {
+              return n.model.name == 'expr';
+            });
+            if (text) {
+              joins.push({op: text.model.statement});
+            }
+          }
+        }
+      })
     }
-    else {
-        return res.json({});
-    }
+  });
+  return joins;
 };
 
-exports.getColumns = function (req, res) {
-    var command = (req.body.sql).toUpperCase();
-    if (command) {
-        var tree = sql.parse(command);
-        tree = prune(tree);
-        var columns = findColumns(tree);
-        console.log(columns);
-        return res.json({"columns":columns});
+var findColumnUse = function(col) {
+    var cur = col;
+    while (cur != null) {
+      switch (cur.model.name) {
+        case 'join_constraint':
+          return 'JOIN';
+          break;
+        case 'select_results':
+          return 'SELECT';
+          break;
+      }
+      cur = cur.parent;
     }
-    else {
-        return res.json({});
+    return 'WHERE';
+  };
+
+var getTables = function(root) {
+  var tableMap = {};
+
+  var tableNodes = [];
+
+  var table_name = root.all(function(n) {
+    return n.model.name == 'table_name';
+  });
+
+  table_name.forEach(function(tn) {
+    tableNodes.push(tn);
+    var table = { name: tn.model.statement, columns: {} };
+    if (!tableMap.hasOwnProperty(table.name)) {
+      tableMap[table.name] = table;
     }
+  });
+
+  tableNodes.forEach(function(n) {
+    if (n.parent) {
+      var col = n.parent.first(function(no) { return no.model.name == 'column_name'});
+      if (col) {
+        var table = tableMap[n.model.statement];
+        var column = {name: col.model.statement, used: 'WHERE' };
+        if (table) {
+          if (!table.columns.hasOwnProperty(column.name)) {
+            // traverse up from col
+
+            column.join = findJoins(root, table.name, column, col);
+            column.used = findColumnUse(col);
+            table.columns[column.name] = column;
+          }
+        }
+      }
+    }
+  });
+
+  console.log(tableMap);
+  return tableMap;
 };
+
 
 exports.parseSQL = function(req, res) {
   var command = req.body.sql;
@@ -511,11 +574,13 @@ exports.parseSQL = function(req, res) {
     // we now have a better looking tree
 
     // THIS NEEDS TO STAY HERE
-    var tables = findTables(tree);
+    //var tables = findTables(tree);
 
     // create tree model to extract data
     var t = new TreeModel();
     var root = t.parse(tree);
+
+    var tables = getTables(root);
     // calculate the output table
 
 
@@ -535,4 +600,3 @@ exports.parseSQL = function(req, res) {
     return res.json({});
   }
 };
-

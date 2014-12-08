@@ -8,14 +8,7 @@ angular.module('sqlvizApp')
      *  Determines whether the node is a table reference
      */
     var isTable = function(node) {
-      if (node.name == 'value') {
-        if (node.children) {
-          if (node.children.indexOf('table_name')) {
-            return true;
-          }
-        }
-      }
-      return false;
+      return node.model.table != null;
     };
 
     var maxTextWidth = function(array, field) {
@@ -299,8 +292,7 @@ angular.module('sqlvizApp')
               .size([height,width])
               .children(function(d) {
                 return (!d.children || d.children.length === 0) ? null: d.children;
-              });
-            /*
+              })
               .separation(function(a, b) {
                 if (a.parent == b.parent) {
                   if (isTable(a) || isTable(b)) {
@@ -309,7 +301,6 @@ angular.module('sqlvizApp')
                 }
                 return 10;
               });
-              */
 
             var diagonal = d3.svg.diagonal()
               .projection(function(d) { return [d.y, d.x]; });
@@ -353,7 +344,7 @@ angular.module('sqlvizApp')
                 return d.model.name;
               });
 
-            // place the name atribute left or right depending if children
+            // place the name attribute left or right depending if children
 
 
               node.append("svg:text")
