@@ -163,7 +163,7 @@
         .enter()
         .append("g")
         .attr("transform", function(d, i) {
-          return "translate(" + (tableW * (i+1) + 10) + ", " + 10 + ")";
+          return "translate(" + (d.op.length * 9 * i + tableW) + ", " +  0+ ")";
         });
 
       whereGroup
@@ -206,7 +206,7 @@
 
   var table =
   {name: "Book",
-  columns: [{name: "Author", selected: "SELECT", where: [{op: ">10"}, {op: " = 10"}]},
+  columns: [{name: "Author", selected: "SELECT", where: [{op: " > 10"}, {op: " = 10"}]},
   {name: "Genre", selected: "SELECT", where:[]},
   {name: "Type", selected: "JOIN", where:[]},
   {name: "Yolomir the Mighty", selected:"SELECT", where:[]}]
@@ -215,7 +215,7 @@
 var t =
   {name: "Book",
   columns: [{name: "Author", selected: "WHERE", where:[]},
-  {name: "Genre", selected: "SELECT", where:[]},
+  {name: "Genre", selected: "SELECT", where:[{op: " < 100"}]},
   {name: "Type", selected: "WHERE", where:[]},
   {name: "Yolomir the Unmighty", selected:"SELECT", where:[]}]
 };

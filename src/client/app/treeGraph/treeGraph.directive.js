@@ -18,31 +18,55 @@ angular.module('sqlvizApp')
       return false;
     };
 
+    var maxTextWidth = function(array, field) {
+      var PX_PER_CHAR = 8;
+
+      if (!array) return 0;
+
+      var maxChar = 0;
+
+      array.forEach(function(item) {
+        var text = field(item);
+        var len = text.length;
+
+        if (len > maxChar) {
+          maxChar = len;
+        }
+      });
+
+      return maxChar * PX_PER_CHAR;
+    };
+
     var createTable = function(svg, tableObj, x, y) {
       var table = [];
       table.push(tableObj);
 
-      var tableW = 150;
+      var tableW = maxTextWidth(tableObj.columns, function(item) { return item.name; });
       var tableH = 200;
       var padding = 20;
       var innerRectPad = 13;
+
+
+      // find max width of columns
 
       var rects = svg.selectAll("body")
         .data(table)
         .enter()
         .append("svg:g")
+        .attr("type", "table")
         .attr("transform", function(d, i) {
           return "translate(" + x + ", " + y + ")";
         });
 
+      var tables = rects;
 
-      rects
+      tables
         .append("rect")
         .attr("class", "rect")
         .attr("width", tableW)
         .attr("height", function(d){
           var length = d.columns.length;
-          return length * 32 + 25;
+          return length * 32 + 21;
         })
         .attr("stroke", "black")
         .attr("stroke-width", 2)
@@ -54,7 +78,7 @@ angular.module('sqlvizApp')
         });
 
       //headers
-      rects
+      tables
         .append("svg:text")
         .text(function(d){
           return d.name
@@ -68,7 +92,7 @@ angular.module('sqlvizApp')
         .attr("font-weight", "bold")
         .attr("text-anchor", "middle");
 
-      rects
+      tables
         .append("line")
         .attr("x1", 0)
         .attr("y1", padding)
@@ -77,21 +101,29 @@ angular.module('sqlvizApp')
         .attr("stroke", "black")
         .attr("stroke-width", 3);
 
-
-
       //inner rects
-      var innerRects = rects.selectAll("g")
+      var columns = rects.selectAll("g[type='table']")
         .data(function(d) {
           return d.columns;
         })
         .enter()
+        .append("g")
+        .attr("transform", function(d, i) {
+          var trans = "translate(";
+          trans += 3;
+          trans += ", ";
+          trans += (27*(i+1)+padding-innerRectPad);
+          trans += ")";
+
+          return trans;
+        })
+        .attr("type", "column-group");
+
+      columns
         .append("rect")
-        .attr("width", tableW-2)
+        .attr("width", tableW-6)
         .attr("height", function(d){
           return 20;
-        })
-        .attr("y", function(d, i){
-          return 27*(i+1)+padding-innerRectPad;
         })
         .attr("stroke", function(d){
           if(d.selected == "SELECT") {
@@ -110,19 +142,14 @@ angular.module('sqlvizApp')
           return "rgba(34,245,0,0.3)";
         });
 
-      //columns
-      rects.selectAll("g")
-        .data(function(d) {
-          return d.columns;
-        })
-        .enter()
+      columns
         .append("text")
         .text(function(d) {
           return d.name;
         })
         .attr("dx", tableW / 2)
         .attr("dy", function(d,i){
-          return 27*(i+1) + padding;
+          return padding - 5;
         })
         .attr("fill", function(d){
           if(d.selected == "SELECT") {
@@ -139,18 +166,41 @@ angular.module('sqlvizApp')
         .attr("width", 100)
         .attr("height", 20);
 
-    //rects for where
-    innerRect.selectAll("g")
-      .data(d.where)
-      .enter()
-      .append("rect")
-      .attr("width", tableW-2)
-      .attr("height", function(d){
-        return 20;
-      })
-      .attr("x", function(d, i){
-        return tableW + 10;
-      });
+      var whereGroup = columns.selectAll('g')
+        .data(function(d) {
+          return d.where;
+        })
+        .enter()
+        .append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + (d.op.length * 9 * i + tableW) + ", " +  0+ ")";
+        });
+
+      whereGroup
+        .append("rect")
+        .attr("width", function(d) {
+          return d.op.length * 12;
+        })
+        .attr("height", function(d){
+          return 20;
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("fill", "white");
+
+      //text for where
+      whereGroup
+        .append("text")
+        .text(function(d) {
+          return d.op;
+        })
+        .attr("dx", function(d, i){
+          return 20;
+        })
+        .attr("dy", 15)
+        .attr("text-anchor", "middle")
+        .attr("width", 100)
+        .attr("height", 20);
     };
 
     return {
@@ -282,8 +332,6 @@ angular.module('sqlvizApp')
                 //}
               }
             });
-
-
           }
         });
       }
