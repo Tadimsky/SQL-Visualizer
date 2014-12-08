@@ -100,7 +100,7 @@ var simplifyTree = function(root, tables) {
   });
 
   nRoot.all(function(n) {
-    return n.model.name == 'join_constraint' && n.children.length == 0;
+    return n.model.name == 'join_constraint';
   }).forEach(function(n) {n.drop();});
 
   nRoot.all(function(n) {
@@ -470,7 +470,7 @@ var findColumns = function (json) {
 };
 
 
-var findJoins = function(root, tableName, columnData, columnNode) {
+var findJoins = function(root, tableName, columnData) {
   var joins = [];
 
   root.walk(function(join) {
@@ -497,6 +497,39 @@ var findJoins = function(root, tableName, columnData, columnNode) {
     }
   });
   return joins;
+};
+
+var findWheres = function(root, tableName, columnData) {
+  var wheres = [];
+
+  var where = root.first(function(n) {
+    return n.model.name = 'WHERE';
+  });
+
+  if (where) {
+
+    where.walk(function (expr) {
+      // at a join
+      if (expr.model.name == 'expr') {
+        expr.walk(function (column) {
+          if (column.model.name == 'column_name' && column.model.statement == columnData.name) {
+            // at a column ref for this column
+            // parent is value
+            var table = column.parent.first(function (tab) {
+              return tab.model.name == 'table_name' && tab.model.statement == tableName;
+            });
+            if (table) {
+              // we're at the right table and column!
+              if (expr) {
+                wheres.push({op: expr.model.statement});
+              }
+            }
+          }
+        })
+      }
+    });
+  }
+  return wheres;
 };
 
 var findColumnUse = function(col) {
@@ -542,7 +575,8 @@ var getTables = function(root) {
           if (!table.columns.hasOwnProperty(column.name)) {
             // traverse up from col
 
-            column.join = findJoins(root, table.name, column, col);
+            column.join = findJoins(root, table.name, column);
+            column.where = findWheres(root, table.name, column);
             column.used = findColumnUse(col);
             table.columns[column.name] = column;
           }
