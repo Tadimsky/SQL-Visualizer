@@ -284,7 +284,7 @@ var formatJSON = function (tables) {
       for (var k in dict) {
         var o = {};
         //o[k] = dict[k];
-        o.column = k;
+        o.name = k;
         o.selected = dict[k];
         col.push(o);
       }
