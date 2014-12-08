@@ -18,8 +18,10 @@ angular.module('sqlvizApp')
       return false;
     };
 
-    var createTable = function(svg, table, x, y) {
-
+    var createTable = function(svg, tableObj, x, y) {
+      var table = [];
+      table.push(tableObj);
+      
       var tableW = 150;
       var tableH = 200;
       var padding = 20;
@@ -218,6 +220,7 @@ angular.module('sqlvizApp')
                     objColumns.push(col);
                   }
                 });
+                console.log(objColumns);
                 object["columns"] = objColumns;
                 tables.push(object);
               }
@@ -228,12 +231,8 @@ angular.module('sqlvizApp')
             var count = 0;
             nodes.forEach(function (n) {
               if (n.model.name === "table") {
-                console.log(tables);
                 //if (n.model.statement.model.statement === (tables[count]).name) {
-                  var singleTable = [];
-                  singleTable.push(tables[count]);
-                  console.log(singleTable);
-                  createTable(svg, singleTable, n.y, n.x);
+                  createTable(svg, tables[count], n.y, n.x);
                   count++;
                 //}
               }
