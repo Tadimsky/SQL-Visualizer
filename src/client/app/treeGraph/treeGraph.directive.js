@@ -35,20 +35,20 @@ angular.module('sqlvizApp')
 
       rects
         .append("rect")
+        .attr("class", "rect")
         .attr("width", tableW)
         .attr("height", function(d){
           var length = d.columns.length;
           return length * 30 + 25;
         })
         .attr("stroke", "black")
-        .attr("stroke-width", 5)
-        .attr("ry", padding)
-        .attr("rx", padding)
+        .attr("stroke-width", 2)
+        .attr("ry", 10)
+        .attr("rx", 10)
         .attr("fill", function(d,i) {
           // return "rgb(34,245,185)";
           return "rgb(73,119,188)";
         });
-
 
       //headers
       rects
