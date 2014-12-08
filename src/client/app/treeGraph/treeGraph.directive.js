@@ -12,7 +12,7 @@ angular.module('sqlvizApp')
     };
 
     var maxTextWidth = function(array, field) {
-      var PX_PER_CHAR = 8;
+      var PX_PER_CHAR = 10;
 
       if (!array) return 0;
 
@@ -27,7 +27,7 @@ angular.module('sqlvizApp')
         }
       });
 
-      return maxChar * PX_PER_CHAR;
+      return maxChar * PX_PER_CHAR + 10;
     };
 
     var tableHeight = function(d) {
@@ -163,7 +163,7 @@ angular.module('sqlvizApp')
 
       var whereLen = 0;
       var whereGroup = columns.selectAll('g')
-        .data(function(d) {
+        .datum(function(d) {
           return d.where;
         })
         .enter()
@@ -200,42 +200,42 @@ angular.module('sqlvizApp')
         .attr("height", 20);
 
 
-        var joinGroup = columns.selectAll('g')
-        .data(function(d) {
-          return d.where;
-        })
-        .enter()
-        .append("g")
-        .attr("transform", function(d, i) {
-          return "translate(" + (d.op.length * 9 * i + whereLen) + ", " +  0+ ")";
-        });
+      //   var joinGroup = columns.selectAll('g')
+      //   .data(function(d) {
+      //     return d.where;
+      //   })
+      //   .enter()
+      //   .append("g")
+      //   .attr("transform", function(d, i) {
+      //     return "translate(" + (d.op.length * 9 * i + whereLen) + ", " +  0+ ")";
+      //   });
 
-        //rect for join
-        joinGroup
-        .append("rect")
-        .attr("width", function(d) {
-          return d.op.length * 12;
-        })
-        .attr("height", function(d){
-          return 20;
-        })
-        .attr("stroke", "black")
-        .attr("stroke-width", 1)
-        .attr("fill", "teal");
+      //   //rect for join
+      //   joinGroup
+      //   .append("rect")
+      //   .attr("width", function(d) {
+      //     return d.op.length * 12;
+      //   })
+      //   .attr("height", function(d){
+      //     return 20;
+      //   })
+      //   .attr("stroke", "black")
+      //   .attr("stroke-width", 1)
+      //   .attr("fill", "teal");
 
-      //text for join
-      joinGroup
-        .append("text")
-        .text(function(d) {
-          return d.op;
-        })
-        .attr("dx", function(d, i){
-          return 20;
-        })
-        .attr("dy", 15)
-        .attr("text-anchor", "middle")
-        .attr("width", 100)
-        .attr("height", 20);
+      // //text for join
+      // joinGroup
+      //   .append("text")
+      //   .text(function(d) {
+      //     return d.op;
+      //   })
+      //   .attr("dx", function(d, i){
+      //     return 20;
+      //   })
+      //   .attr("dy", 15)
+      //   .attr("text-anchor", "middle")
+      //   .attr("width", 100)
+      //   .attr("height", 20);
     };
 
     return {
