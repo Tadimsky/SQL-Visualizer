@@ -3,16 +3,82 @@
 var _ = require('lodash');
 var sql = require('./sqlparser.js');
 var crypto = require('crypto');
-
 var TreeModel = require('tree-model');
 
-// Get list of sqls
 exports.index = function(req, res) {
   res.json([]);
 };
 
-var generateResultTable = function(root) {
+var removeCircularReferences = function(root) {
+  root.walk(function(n) {
+    if (n.model.children) {
+      delete n.model.children;
+    }
+    if (n.parent) {
+      delete n.parent;
+    }
+  });
+  return root;
+};
 
+var simplifyTree = function(root) {
+  var nRoot = root.first(function(n) {
+    return n.model.name == 'sql_stmt';
+  });
+  if (!nRoot) return root;
+
+  // remove select_results node
+  var selects = nRoot.all(function(n) {
+    return (n.model.name == 'select_results');
+  });
+  selects.forEach(function(n) {
+    n.children.forEach(function(child) {
+      n.parent.addChild(child);
+    });
+    n.drop();
+  });
+
+
+  nRoot.walk(function(n) {
+    switch (n.model.name) {
+      case 'select_result':
+          n.children = [];
+        break;
+      case 'single_source':
+        var table = n.first(function(t) {
+          return t.model.name == 'table_name';
+        });
+        if (table) {
+          n.model.name = 'table';
+          n.model.table = table;
+          n.model.statement = table;
+        }
+
+            break;
+      case 'join_constraint':
+        var expr = n.first(function(t) {
+          return t.model.name == 'expr';
+        });
+
+        expr.children = [];
+            break;
+    }
+  });
+
+  nRoot.all(function(n) {
+    return n.model.name == 'table';
+  }).forEach(function(n) {
+    n.children.forEach(function(child) {
+      child.all(function() {return true})
+        .forEach(function(n) {n.drop(); });
+    });
+  });
+
+
+  return nRoot;
+};
+
+var generateResultTable = function(root) {
   var output = [];
 
   var select_results =  root.all(function(node) {
@@ -98,7 +164,7 @@ var prune = function(data) {
   else {
     // don't care about whitespace
     var text = data.name;
-    if ((text.indexOf('whitespace') > -1) || (text.indexOf('semicolon') > -1)) {
+    if ((text.indexOf('whitespace') > -1) || (text.indexOf('semicolon') > -1) || (text.indexOf('comma') > -1)) {
       // discard
       // never has children
     }
@@ -150,6 +216,9 @@ var findTables = function (json) {
     var uniqueTables = {};
     var visited = {};
     var firstNode = json.children[0];
+    if (!firstNode) {
+      return null;
+    }
     var stack = [];
     stack.push(firstNode);
 
@@ -288,35 +357,6 @@ var findColumns = function (json) {
     return columnTuples;
 };
 
-
-exports.parseSQL = function(req, res) {
-  var command = req.body.sql;
-  if (command) {
-
-    // parse the tree
-    var tree = sql.parse(command);
-    // clean out junk
-    tree = prune(tree);
-
-    // simplify
-    tree = reformat(tree);
-    // we now have a better looking tree
-
-    // create tree model to extract data
-    var t = new TreeModel();
-    var root = t.parse(tree);
-
-    var resultTable = generateResultTable(root);
-    console.log(resultTable);
-
-    var tables = findTables(tree);
-    return res.json({tables: tables, tree: tree});
-  }
-  else {
-    return res.json({});
-  }
-};
-
 exports.getTables = function (req, res) {
     var command = (req.body.sql).toUpperCase();
     if (command) {
@@ -344,5 +384,43 @@ exports.getColumns = function (req, res) {
     else {
         return res.json({});
     }
-}
+};
+
+exports.parseSQL = function(req, res) {
+  var command = req.body.sql;
+  if (command) {
+
+    // parse the tree
+    var tree = sql.parse(command);
+    // clean out junk
+    tree = prune(tree);
+
+    // simplify
+    tree = reformat(tree);
+    // we now have a better looking tree
+
+    // create tree model to extract data
+    var t = new TreeModel();
+    var root = t.parse(tree);
+    // calculate the output table
+    var resultTable = generateResultTable(root);
+
+    var simpleTree = simplifyTree(root);
+
+    var noncircularTree = removeCircularReferences(simpleTree);
+
+    //var tables = findTables(tree);
+    return res.send(
+      {
+        tables: null,
+        tree: null,
+        output: resultTable,
+        simple: noncircularTree
+      }
+    );
+  }
+  else {
+    return res.json({});
+  }
+};
 

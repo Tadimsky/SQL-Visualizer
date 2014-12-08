@@ -129,7 +129,7 @@ angular.module('sqlvizApp')
       },
       link: function (scope, element, attrs) {
         d3Service.d3().then(function(d3) {
-          var margin = {top: 10, right: 120, bottom: 20, left: 10},
+          var margin = {top: 20, right: 120, bottom: 20, left: 50},
             width = 1400,
             height = 1000;
 
@@ -138,9 +138,10 @@ angular.module('sqlvizApp')
             .attr('width', width)
             .attr('height', height)
             .append('g')
-            .attr("transform", "translate(" + margin.left +  "," + margin.top + ")");
+            .attr("transform", "translate(" + margin.left +  "," + margin.top + "), scale(0.95)");
 
-
+          width = width - margin.left - margin.right;
+          height = height - margin.top - margin.bottom;
 
           window.onresize = function() {
             scope.$apply();
@@ -158,10 +159,14 @@ angular.module('sqlvizApp')
 
           scope.render = function(jsonData) {
 
-            var data = jsonData.tree;
+            var data = jsonData;
 
             svg.selectAll('*').remove();
 
+            if (!jsonData) {
+              return;
+            }
+            var data = jsonData.simple;
             if (!data) {
               return;
             }
@@ -224,13 +229,6 @@ angular.module('sqlvizApp')
               }
             });
 
-            nodes.forEach(function(n) {
-              if (isTable(n)) {
-                //n.name = 'tablbeeee'
-                //n.children = [];
-              }
-            });
-
             // Create an array with all the links
             var links = tree.links(nodes);
 
@@ -254,7 +252,7 @@ angular.module('sqlvizApp')
               .attr("dx", 0)
               .attr("dy", function(d) { return d.children? -8 : 20 } )
               .attr("text-anchor", 'middle')
-              .text(function(d) { return d.name; });
+              .text(function(d) { return d.model.name; });
 
               // place the name atribute left or right depending if children
             node.append("svg:text")
@@ -270,7 +268,7 @@ angular.module('sqlvizApp')
                 .attr("dx", 0)
                 .attr("dy", function(d) { return d.children? 15 : 40 } )
                 .attr("text-anchor", 'middle')
-                .text(function(d) {return d.statement == d.name || d.depth < 4 ? '' : d.statement; });
+                .text(function(d) {return d.model.statement == d.model.name || d.depth < 4 ? '' : d.model.statement; });
 
           }
         });
