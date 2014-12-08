@@ -11,7 +11,10 @@ angular.module('sqlvizApp')
       return node.model.table != null;
     };
 
-    var maxTextWidth = function(array, field) {
+    var maxTextWidth = function(title, array, field) {
+
+      var minWidth = title.length * 12;
+
       var PX_PER_CHAR = 10;
 
       if (!array) return 0;
@@ -26,8 +29,8 @@ angular.module('sqlvizApp')
           maxChar = len;
         }
       });
-
-      return maxChar * PX_PER_CHAR + 10;
+      var w = maxChar * PX_PER_CHAR + 10;
+      return w < minWidth ? minWidth : w;
     };
 
     var tableHeight = function(d) {
@@ -39,7 +42,7 @@ angular.module('sqlvizApp')
       var table = [];
       table.push(tableObj);
 
-      var tableW = maxTextWidth(tableObj.columns, function(item) { return item.name; });
+      var tableW = maxTextWidth(tableObj.name, tableObj.columns, function(item) { return item.name; });
       var tableH = tableHeight(tableObj);
       var padding = 20;
       var innerRectPad = 13;
@@ -161,16 +164,16 @@ angular.module('sqlvizApp')
         .attr("width", 100)
         .attr("height", 20);
 
-      var whereLen = 0;
+      var whereLen = tableW;
       var whereGroup = columns.selectAll('g')
         .data(function(d) {
           console.log(d);
-          return d.where;
+          return d.where ? d.where : [];
         })
         .enter()
         .append("g")
         .attr("transform", function(d, i) {
-          whereLen += d.op.length * 9 * i + tableW;
+          whereLen += d.op.length * 9 * i;
           return "translate(" + (d.op.length * 9 * i + tableW) + ", " +  0+ ")";
         });
 
@@ -193,50 +196,50 @@ angular.module('sqlvizApp')
           return d.op;
         })
         .attr("dx", function(d, i){
-          return 20;
+          return 2;
         })
         .attr("dy", 15)
-        .attr("text-anchor", "middle")
+        .attr("text-anchor", "left")
         .attr("width", 100)
         .attr("height", 20);
 
 
-      //   var joinGroup = columns.selectAll('g')
-      //   .data(function(d) {
-      //     return d.where;
-      //   })
-      //   .enter()
-      //   .append("g")
-      //   .attr("transform", function(d, i) {
-      //     return "translate(" + (d.op.length * 9 * i + whereLen) + ", " +  0+ ")";
-      //   });
+        var joinGroup = columns.selectAll('g')
+        .data(function(d) {
+          return d.join ? d.join : [];
+        })
+        .enter()
+        .append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + (d.op.length * 9 * i + whereLen) + ", " +  0+ ")";
+        });
 
-      //   //rect for join
-      //   joinGroup
-      //   .append("rect")
-      //   .attr("width", function(d) {
-      //     return d.op.length * 12;
-      //   })
-      //   .attr("height", function(d){
-      //     return 20;
-      //   })
-      //   .attr("stroke", "black")
-      //   .attr("stroke-width", 1)
-      //   .attr("fill", "teal");
+        //rect for join
+        joinGroup
+        .append("rect")
+        .attr("width", function(d) {
+          return d.op.length * 12;
+        })
+        .attr("height", function(d){
+          return 20;
+        })
+        .attr("stroke", "teal")
+        .attr("stroke-width", 1)
+        .attr("fill", "teal");
 
-      // //text for join
-      // joinGroup
-      //   .append("text")
-      //   .text(function(d) {
-      //     return d.op;
-      //   })
-      //   .attr("dx", function(d, i){
-      //     return 20;
-      //   })
-      //   .attr("dy", 15)
-      //   .attr("text-anchor", "middle")
-      //   .attr("width", 100)
-      //   .attr("height", 20);
+      //text for join
+      joinGroup
+        .append("text")
+        .text(function(d) {
+          return d.op;
+        })
+        .attr("dx", function(d, i){
+          return 20;
+        })
+        .attr("dy", 15)
+        .attr("text-anchor", "left")
+        .attr("width", 100)
+        .attr("height", 20);
     };
 
     return {
@@ -255,7 +258,7 @@ angular.module('sqlvizApp')
             .attr('width', width)
             .attr('height', height)
             .append('g')
-            .attr("transform", "translate(" + margin.left +  "," + margin.top + "), scale(0.95)");
+            .attr("transform", "translate(" + margin.left +  "," + margin.top + "), scale(0.85)");
 
           width = width - margin.left - margin.right;
           height = height - margin.top - margin.bottom;
@@ -289,7 +292,7 @@ angular.module('sqlvizApp')
             }
 
             // Create a tree "canvas"
-            var tree = d3.layout.cluster()
+            var tree = d3.layout.tree()
               .size([height,width])
               .children(function(d) {
                 return (!d.children || d.children.length === 0) ? null: d.children;
