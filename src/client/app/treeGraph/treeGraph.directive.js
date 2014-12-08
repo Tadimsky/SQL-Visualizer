@@ -239,7 +239,7 @@ angular.module('sqlvizApp')
                 return d.model.name;
               });
 
-            // place the name atribute left or right depending if children
+            // place the name attribute left or right depending if children
 
 
               node.append("svg:text")

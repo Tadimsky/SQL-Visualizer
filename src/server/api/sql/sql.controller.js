@@ -491,9 +491,25 @@ var getTables = function(root) {
       var col = n.parent.first(function(no) { return no.model.name == 'column_name'});
       if (col) {
         var table = tableMap[n.model.statement];
-        var column = {name: col.model.statement, used: 'SELECT' };
+        var column = {name: col.model.statement, used: 'NONE' };
         if (table) {
           if (!table.columns.hasOwnProperty(column.name)) {
+            // traverse up from col
+            var cur = col;
+            while (cur != null) {
+              switch (cur.model.name) {
+                case 'join_constraint':
+                      column.used = 'JOIN';
+                      break;
+                case 'select_results':
+                  column.used = 'SELECT';
+                  break;
+              }
+              if (cur.model.statement == 'WHERE') {
+                column.used = 'WHERE';
+              }
+              cur = cur.parent;
+            }
             table.columns[column.name] = column;
           }
         }
