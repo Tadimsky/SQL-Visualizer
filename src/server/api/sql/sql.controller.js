@@ -53,9 +53,11 @@ var simplifyTree = function(root, tables) {
 
           var tableName = table.model.statement;
           if (tableName) {
-            if (tables.hasOwnProperty(tableName)) {
-              n.model.table = tables[tableName];
-            }
+            tables.forEach(function(t) {
+              if (t.name == tableName) {
+                n.model.table = t;
+              }
+            });
           }
           n.model.statement = table;
         }
@@ -281,7 +283,9 @@ var formatJSON = function (tables) {
       }
       for (var k in dict) {
         var o = {};
-        o[k] = dict[k];
+        //o[k] = dict[k];
+        o.column = k;
+        o.selected = dict[k];
         col.push(o);
       }
 

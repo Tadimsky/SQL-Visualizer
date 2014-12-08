@@ -118,7 +118,7 @@ angular.module('sqlvizApp')
         .enter()
         .append("text")
         .text(function(d) {
-          return d.name;
+          return d.column;
         })
         .attr("dx", tableW / 2)
         .attr("dy", function(d,i){
@@ -205,43 +205,11 @@ angular.module('sqlvizApp')
             var nodes = tree.nodes(data);
             // take the nodes and clean them up
 
-            // Temporary reformatting of JSON for createTable
-            var tableObject = jsonData.tables;
-            var tables = [];
-            for (var key in tableObject) {
-              if (tableObject.hasOwnProperty(key)) {
-                var object = {};
-                var columns = [];
-                var objColumns = [];
-                object["name"] = key;
-
-                (tableObject[key]).forEach( function (column) {
-                  if (columns.indexOf(column) == -1) {
-                    var col = {};
-                    for (var k in column) {
-                      col["name"] = k;
-                    }
-                    if (column[k] === "SELECT") {
-                      col["selected"] = true;
-                    }
-                    columns.push(column);
-                    objColumns.push(col);
-                  }
-                });
-                console.log(objColumns);
-                object["columns"] = objColumns;
-                tables.push(object);
-              }
-            }
-            //[{},{}]
-
             // Create tables at the appropriate nodes.
-            var count = 0;
             nodes.forEach(function (n) {
-              if (n.model.name === "table") {
+              if (n.model.table && n.model.name != 'output') {
                 //if (n.model.statement.model.statement === (tables[count]).name) {
-                  createTable(svg, tables[count], n.y, n.x);
-                  count++;
+                  createTable(svg, n.model.table, n.y, n.x);
                 //}
               }
             });
