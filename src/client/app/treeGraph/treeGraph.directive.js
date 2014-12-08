@@ -23,6 +23,7 @@ angular.module('sqlvizApp')
       var tableW = 150;
       var tableH = 200;
       var padding = 20;
+      var innerRectPad = 13;
 
       var rects = svg.selectAll("body")
         .data(table)
@@ -39,7 +40,7 @@ angular.module('sqlvizApp')
         .attr("width", tableW)
         .attr("height", function(d){
           var length = d.columns.length;
-          return length * 30 + 25;
+          return length * 32 + 25;
         })
         .attr("stroke", "black")
         .attr("stroke-width", 2)
@@ -74,6 +75,30 @@ angular.module('sqlvizApp')
         .attr("stroke", "black")
         .attr("stroke-width", 3);
 
+
+
+      //inner rects
+      rects.selectAll("g")
+        .data(function(d) {
+          return d.columns;
+        })
+        .enter()
+        .append("rect")
+        .attr("width", tableW-2)
+        .attr("height", function(d){
+          return 20;
+        })
+        .attr("y", function(d, i){
+          return 25*(i+1)+padding-innerRectPad;
+        })
+        .attr("stroke", function(d){
+          return d.selected ? "yellow" : "white";
+        })
+        .attr("stroke-width", 1)
+        .attr("fill", function(d,i) {
+          // return "rgb(34,245,185)";
+          return "rgba(34,245,0,0.3)";
+        });
 
       //columns
       rects.selectAll("g")
@@ -181,7 +206,9 @@ angular.module('sqlvizApp')
                     for (var k in column) {
                       col["name"] = k;
                     }
-                    col["selected"] = true;
+                    if (column[k] === "SELECT") {
+                      col["selected"] = true;
+                    }
                     columns.push(column);
                     objColumns.push(col);
                   }
